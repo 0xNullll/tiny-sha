@@ -2,7 +2,7 @@
 
 A lightweight, portable C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, and SHA-512/256**.  
 All algorithms are **enabled by default**. Portable, endian-aware, and optimized for both little-endian and big-endian systems.  
-SHA-3 is planned for future versions.
+SHA-3 is planned for future versions.  
 
 ---
 
@@ -13,6 +13,7 @@ SHA-3 is planned for future versions.
 - Incremental (streaming) API: `Init`, `Update`, `Final` — all functions return `bool`  
 - Wrapper functions for each algorithm for single-shot hashing — return `bool`  
 - Handles endianness automatically  
+- Lightweight — the entire library is under 50 KB
 
 ---
 
