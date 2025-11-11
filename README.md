@@ -66,7 +66,7 @@ You can also define it via compiler flags:
 gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION tiny_sha.c test_sha.c -o test_sha
 ```
 
-> ⚠️ Note: `TSHASH_PREFIX` must be defined **before including the header**. If not defined, functions will have no prefix (default behavior).
+> Note: `TSHASH_PREFIX` must be defined **before including the header**. If not defined, functions will have no prefix (default behavior).
 
 ---
 
@@ -94,7 +94,7 @@ gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 tiny_sha.c your_program.c -o your_program
 
 The -D flags let you enable/disable specific algorithms.
 
-> Note: Do not define TINY_SHA_IMPLEMENTATION — that macro is irrelevant for this library. All implementations are already in tiny_sha.c.
+> ⚠️ Note: Do not define TINY_SHA_IMPLEMENTATION — that macro is irrelevant for this library. All implementations are already in tiny_sha.c.
 
 ---
 
