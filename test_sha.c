@@ -20,53 +20,74 @@ int main(int argc, char *argv[]) {
 
 #if ENABLE_SHA1
     uint8_t digest1[SHA1_DIGEST_SIZE];
-    if (!SHA1((uint8_t*)input, len, digest1)) {
+    if (!SHA1((const uint8_t*)input, len, digest1)) {
         printf("SHA1 computation failed!\n");
         return 1;
     }
-    printf("SHA1:   ");
+    printf("SHA1:    ");
     print_hex(digest1, SHA1_DIGEST_SIZE);
 #endif
 
 #if ENABLE_SHA224
-    uint8_t digest3[SHA224_DIGEST_SIZE];
-    if (!SHA224((uint8_t*)input, len, digest3)) {
+    uint8_t digest224[SHA224_DIGEST_SIZE];
+    if (!SHA224((const uint8_t*)input, len, digest224)) {
         printf("SHA224 computation failed!\n");
         return 1;
     }
-    printf("SHA224: ");
-    print_hex(digest3, SHA224_DIGEST_SIZE);
+    printf("SHA224:  ");
+    print_hex(digest224, SHA224_DIGEST_SIZE);
 #endif
 
 #if ENABLE_SHA256
-    uint8_t digest2[SHA256_DIGEST_SIZE];
-    if (!SHA256((uint8_t*)input, len, digest2)) {
+    uint8_t digest256[SHA256_DIGEST_SIZE];
+    if (!SHA256((const uint8_t*)input, len, digest256)) {
         printf("SHA256 computation failed!\n");
         return 1;
     }
-    printf("SHA256: ");
-    print_hex(digest2, SHA256_DIGEST_SIZE);
+    printf("SHA256:  ");
+    print_hex(digest256, SHA256_DIGEST_SIZE);
 #endif
 
 #if ENABLE_SHA384
-    uint8_t digest5[SHA384_DIGEST_SIZE];
-    if (!SHA384((uint8_t*)input, len, digest5)) {
+    uint8_t digest384[SHA384_DIGEST_SIZE];
+    if (!SHA384((const uint8_t*)input, len, digest384)) {
         printf("SHA384 computation failed!\n");
         return 1;
     }
-    printf("SHA384: ");
-    print_hex(digest5, SHA384_DIGEST_SIZE);
+    printf("SHA384:  ");
+    print_hex(digest384, SHA384_DIGEST_SIZE);
 #endif
 
 #if ENABLE_SHA512
-    uint8_t digest4[SHA512_DIGEST_SIZE];
-    if (!SHA512((uint8_t*)input, len, digest4)) {
+    uint8_t digest512[SHA512_DIGEST_SIZE];
+    if (!SHA512((const uint8_t*)input, len, digest512)) {
         printf("SHA512 computation failed!\n");
         return 1;
     }
-    printf("SHA512: ");
-    print_hex(digest4, SHA512_DIGEST_SIZE);
+    printf("SHA512:  ");
+    print_hex(digest512, SHA512_DIGEST_SIZE);
+#endif
+
+#if ENABLE_SHA512_224
+    uint8_t digest512_224[SHA512_224_DIGEST_SIZE];
+    if (!SHA512_224((const uint8_t*)input, len, digest512_224)) {
+        printf("SHA512/224 computation failed!\n");
+        return 1;
+    }
+    printf("SHA512/224: ");
+    print_hex(digest512_224, SHA512_224_DIGEST_SIZE);
+#endif
+
+#if ENABLE_SHA512_256
+    uint8_t digest512_256[SHA512_256_DIGEST_SIZE];
+    if (!SHA512_256((const uint8_t*)input, len, digest512_256)) {
+        printf("SHA512/256 computation failed!\n");
+        return 1;
+    }
+    printf("SHA512/256: ");
+    print_hex(digest512_256, SHA512_256_DIGEST_SIZE);
 #endif
 
     return 0;
 }
+
