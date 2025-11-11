@@ -163,14 +163,14 @@ int main() {
 
 ## Why I made this
 
-I wrote **Tiny SHA** because I wanted a tiny, self-contained hashing library I can easily hook into my C projects (for example my PE dumper) without dragging in huge dependencies like OpenSSL. It's a learning tool first — implementing the algorithms helped me understand padding, endianness, and incremental hashing — but it's also practical: header-only, configurable (enable/disable algorithms), and prefixable so it won't clash with other code. The library is intentionally minimal so I can audit, modify, and extend it quickly while keeping the integration footprint small.
+I wrote **Tiny SHA** because I wanted a small, self-contained hashing library I can easily include in my C projects (for example, my PE dumper) without pulling in large dependencies like OpenSSL. It's both a learning tool, helping me understand padding, endianness, and incremental hashing and a practical library: configurable (enable/disable algorithms), prefixable to avoid name collisions, and straightforward to compile and link. The code is minimal, auditable, and easy to extend.
 
 ---
 
 ## References
 
-- RFC 6234 — *US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)*. Sample code & authoritative spec for SHA algorithms. :contentReference[oaicite:0]{index=0}
-- 
+- RFC 6234 — *US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)*: [https://datatracker.ietf.org/doc/html/rfc6234#section-8.2.3](https://datatracker.ietf.org/doc/html/rfc6234#section-8.2.3)
+
 ---
 
 ## License
