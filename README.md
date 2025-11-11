@@ -96,14 +96,6 @@ The -D flags let you enable/disable specific algorithms.
 
 > Note: Do not define TINY_SHA_IMPLEMENTATION — that macro is irrelevant for this library. All implementations are already in tiny_sha.c.
 
-Call the functions normally:
-
-```c
-uint8_t hash[SHA256_HASH_SIZE];
-SHA256((const uint8_t*)data, data_len, hash);
-Call the functions normally:
-```
-
 ---
 
 ## Usage Examples
