@@ -1,6 +1,6 @@
 # Tiny SHA Library
 
-A lightweight, header-only C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512**.  
+A lightweight C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512**.  
 All algorithms are **enabled by default**. Portable, endian-aware, and optimized for both little-endian and big-endian systems.
 
 ---
@@ -8,10 +8,9 @@ All algorithms are **enabled by default**. Portable, endian-aware, and optimized
 ## Features
 
 - SHA-1, SHA-224, SHA-256, SHA-384, SHA-512  
-- Single header file (`tiny_sha.h`)  
+- Separate implementation file (`tiny_sha.c`) and header (`tiny_sha.h`)  
 - Incremental (streaming) API: `Init`, `Update`, `Final` — all functions return `bool`  
 - Wrapper functions for each algorithm for single-shot hashing — return `bool`  
-- Header-only and portable  
 - Handles endianness automatically  
 
 ---
@@ -71,16 +70,39 @@ gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION tiny_sha.c test_sha.c -o te
 
 ---
 
-## Installation
+### Installation / Usage
 
-Include the header in **one C file** with the implementation macro:
+Tiny SHA consists of:
+
+- tiny_sha.c — contains all function implementations
+
+- tiny_sha.h — contains declarations, macros, and configuration flags
+
+Steps to use in your project
+
+Include the header in any file where you want to use the functions:
 
 ```c
-#define TINY_SHA_IMPLEMENTATION
 #include "tiny_sha.h"
 ```
 
-Then include normally in other files **without** the implementation macro.
+Compile your program together with the implementation file:
+
+```bash
+gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 tiny_sha.c your_program.c -o your_program
+```
+
+The -D flags let you enable/disable specific algorithms.
+
+> Note: Do not define TINY_SHA_IMPLEMENTATION — that macro is irrelevant for this library. All implementations are already in tiny_sha.c.
+
+Call the functions normally:
+
+```c
+uint8_t hash[SHA256_HASH_SIZE];
+SHA256((const uint8_t*)data, data_len, hash);
+Call the functions normally:
+```
 
 ---
 
