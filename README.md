@@ -183,6 +183,8 @@ int main() {
 
 ## Why I made this
 
+Hi!
+
 I wrote Tiny SHA because I wanted a small, self-contained hashing library I can easily include in my C projects (for example, my PE dumper) without pulling in large dependencies like OpenSSL or relying on copying/stealing other people’s code. It's both a learning tool, helping me understand padding, endianness, and incremental hashing, and a practical library: configurable (enable/disable algorithms), prefixable to avoid name collisions, and straightforward to compile and link. The code is minimal, auditable, and easy to extend. :)
 
 ---
