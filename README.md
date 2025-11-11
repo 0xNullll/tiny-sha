@@ -169,7 +169,7 @@ I wrote **Tiny SHA** because I wanted a small, self-contained hashing library I 
 
 ## References
 
-- RFC 6234 — *US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)*: [https://datatracker.ietf.org/doc/html/rfc6234#section-8.2.3](https://datatracker.ietf.org/doc/html/rfc6234#section-8.2.3)
+- RFC 6234 — *US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)*: [https://datatracker.ietf.org/doc/html/rfc6234](https://datatracker.ietf.org/doc/html/rfc6234)
 
 ---
 
