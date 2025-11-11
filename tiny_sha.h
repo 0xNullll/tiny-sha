@@ -35,6 +35,14 @@ extern "C" {
 #define ENABLE_SHA256 1
 #endif
 
+#ifndef ENABLE_SHA512_256
+#define ENABLE_SHA512_256 1
+#endif
+
+#ifndef ENABLE_SHA512_224
+#define ENABLE_SHA512_224 1
+#endif
+
 #ifndef ENABLE_SHA384
 #define ENABLE_SHA384 1
 #endif
@@ -55,6 +63,18 @@ extern "C" {
 
 /* SHA-384 uses SHA-512 functions internally */
 #if ENABLE_SHA384
+  #undef ENABLE_SHA512
+  #define ENABLE_SHA512 1
+#endif
+
+/* SHA-512_224 uses SHA-512 functions internally */
+#if ENABLE_SHA512_224
+  #undef ENABLE_SHA512
+  #define ENABLE_SHA512 1
+#endif
+
+/* SHA-512_256 uses SHA-512 functions internally */
+#if ENABLE_SHA512_256
   #undef ENABLE_SHA512
   #define ENABLE_SHA512 1
 #endif
@@ -283,6 +303,48 @@ bool SHA384Init(SHA384_CTX *ctx);
 bool SHA384Update(SHA384_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA384Final(SHA384_CTX *ctx, uint8_t digest[SHA384_DIGEST_SIZE]);
 bool SHA384(const uint8_t *data, size_t len, uint8_t digest[SHA384_DIGEST_SIZE]);
+
+#endif
+
+/* ======================================
+   SHA-512/224 (truncated SHA-512)
+   ====================================== */
+#if ENABLE_SHA512_224
+#define SHA512_224Init   TSHASH_FN(SHA512_224Init)
+#define SHA512_224Update TSHASH_FN(SHA512_224Update)
+#define SHA512_224Final  TSHASH_FN(SHA512_224Final)
+#define SHA512_224       TSHASH_FN(SHA512_224)
+
+#define SHA512_224_BLOCK_SIZE 128
+#define SHA512_224_DIGEST_SIZE 28
+
+typedef SHA512_CTX SHA512_224_CTX;
+
+bool SHA512_224Init(SHA512_224_CTX *ctx);
+bool SHA512_224Update(SHA512_224_CTX *ctx, const uint8_t *data, size_t len);
+bool SHA512_224Final(SHA512_224_CTX *ctx, uint8_t digest[SHA512_224_DIGEST_SIZE]);
+bool SHA512_224(const uint8_t *data, size_t len, uint8_t digest[SHA512_224_DIGEST_SIZE]);
+
+#endif
+
+/* ======================================
+   SHA-512/256 (truncated SHA-512)
+   ====================================== */
+#if ENABLE_SHA512_256
+#define SHA512_256Init   TSHASH_FN(SHA512_256Init)
+#define SHA512_256Update TSHASH_FN(SHA512_256Update)
+#define SHA512_256Final  TSHASH_FN(SHA512_256Final)
+#define SHA512_256       TSHASH_FN(SHA512_256)
+
+#define SHA512_256_BLOCK_SIZE 128
+#define SHA512_256_DIGEST_SIZE 32
+
+typedef SHA512_CTX SHA512_256_CTX;
+
+bool SHA512_256Init(SHA512_256_CTX *ctx);
+bool SHA512_256Update(SHA512_256_CTX *ctx, const uint8_t *data, size_t len);
+bool SHA512_256Final(SHA512_256_CTX *ctx, uint8_t digest[SHA512_256_DIGEST_SIZE]);
+bool SHA512_256(const uint8_t *data, size_t len, uint8_t digest[SHA512_256_DIGEST_SIZE]);
 
 #endif
 
