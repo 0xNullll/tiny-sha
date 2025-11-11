@@ -1,34 +1,102 @@
 # Tiny SHA Library
 
 A lightweight, header-only C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512**.  
-All algorithms are **enabled by default**. It is portable, endian-aware, and optimized for both little-endian and big-endian systems.
+All algorithms are **enabled by default**. Portable, endian-aware, and optimized for both little-endian and big-endian systems.
+
+---
 
 ## Features
 
 - SHA-1, SHA-224, SHA-256, SHA-384, SHA-512  
 - Single header file (`tiny_sha.h`)  
-- Incremental (streaming) API: `Init`, `Update`, `Final` ,  
+- Incremental (streaming) API: `Init`, `Update`, `Final` — all functions return `bool`  
+- Wrapper functions for each algorithm for single-shot hashing — return `bool`  
 - Header-only and portable  
 - Handles endianness automatically  
 
+---
+
+## Configurable Feature Flags
+
+The library allows enabling or disabling specific hash algorithms. By default, all are enabled.  
+
+- Flags are defined inside the header:
+
+```c
+#define ENABLE_SHA1   1  // 1 = enable, 0 = disable
+#define ENABLE_SHA256 0
+#include "tiny_sha.h"
+```
+
+> ⚠️ Note: Defining these macros before including the header may not always work. Recommended ways:
+
+1. Update the flags directly inside the header.  
+2. Use compiler `-D` flags, for example:
+
+```bash
+gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 main.c -o main
+```
+
+The header handles internal dependencies automatically:
+
+- SHA-224 uses SHA-256 internally.  
+- SHA-384 uses SHA-512 internally.  
+
+---
+
+## Optional Function Name Prefix (`TSHASH_PREFIX`)
+
+To avoid name collisions, you can add a prefix to all functions:
+
+```c
+#define TSHASH_PREFIX MyLib_      // prefix for all functions
+#define TINY_SHA_IMPLEMENTATION
+#include "tiny_sha.h"
+```
+
+Now all functions will have the prefix:
+
+```c
+MyLib_SHA256(...);         // wrapper function
+MyLib_sha256_init(...);    // incremental API
+```
+
+You can also define it via compiler flags:
+
+```bash
+gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION main.c -o main
+```
+
+> Note: `TSHASH_PREFIX` must be defined **before including the header**. If not defined, functions will have no prefix (default behavior).
+
+---
+
 ## Installation
 
-Include the header in **one C file** with implementation:
+Include the header in **one C file** with the implementation macro:
 
 ```c
 #define TINY_SHA_IMPLEMENTATION
 #include "tiny_sha.h"
 ```
 
-Then include the header normally in other files without defining the implementation macro.
+Then include normally in other files **without** the implementation macro.
 
-Usage Example
+---
+
+## Usage Examples
+
+### Wrapper / Single-Shot API
+
 ```c
+#include <stdio.h>
+#include "tiny_sha.h"
+
 int main() {
     const char *msg = "Hello, Tiny SHA!";
     uint8_t hash[SHA256_HASH_SIZE];
 
-    // Wrapper function returns bool indicating success
+    // Wrapper returns bool
     if (SHA256((const uint8_t*)msg, strlen(msg), hash)) {
         printf("SHA-256: ");
         for (int i = 0; i < SHA256_HASH_SIZE; i++) {
@@ -42,3 +110,51 @@ int main() {
     return 0;
 }
 ```
+
+### Incremental / Streaming API
+
+```c
+#include <stdio.h>
+#include "tiny_sha.h"
+
+int main() {
+    const char *msg = "Hello, Tiny SHA!";
+    uint8_t hash[SHA256_HASH_SIZE];
+    SHA256_CTX ctx;
+
+    if (sha256_init(&ctx) &&
+        sha256_update(&ctx, (const uint8_t*)msg, strlen(msg)) &&
+        sha256_final(&ctx, hash)) {
+
+        printf("SHA-256: ");
+        for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+            printf("%02x", hash[i]);
+        }
+        printf("\n");
+    } else {
+        printf("SHA-256 computation failed!\n");
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Output Sizes
+
+| Algorithm | Digest Size |
+|-----------|------------|
+| SHA-1     | 20 bytes   |
+| SHA-224   | 28 bytes   |
+| SHA-256   | 32 bytes   |
+| SHA-384   | 48 bytes   |
+| SHA-512   | 64 bytes   |
+
+---
+
+## Notes
+
+- No external dependencies — fully self-contained.  
+- All functions return `bool` to indicate success/failure.  
+- Designed for simplicity, speed, and ease of integration.  
