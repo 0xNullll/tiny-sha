@@ -34,7 +34,7 @@ The library allows enabling or disabling specific hash algorithms. By default, a
 2. Use compiler `-D` flags, for example:
 
 ```bash
-gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 main.c -o main
+gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 tiny_sha.c test_sha.c -o test_sha
 ```
 
 The header handles internal dependencies automatically:
@@ -64,7 +64,7 @@ MyLib_sha256_init(...);    // incremental API
 You can also define it via compiler flags:
 
 ```bash
-gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION main.c -o main
+gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION tiny_sha.c test_sha.c -o test_sha
 ```
 
 > Note: `TSHASH_PREFIX` must be defined **before including the header**. If not defined, functions will have no prefix (default behavior).
