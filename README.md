@@ -1,13 +1,14 @@
 # Tiny SHA Library
 
-A lightweight C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512**.  
-All algorithms are **enabled by default**. Portable, endian-aware, and optimized for both little-endian and big-endian systems.
+A lightweight, portable C library implementing **SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, and SHA-512/256**.  
+All algorithms are **enabled by default**. Portable, endian-aware, and optimized for both little-endian and big-endian systems.  
+SHA-3 is planned for future versions.
 
 ---
 
 ## Features
 
-- SHA-1, SHA-224, SHA-256, SHA-384, SHA-512  
+- SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256  
 - Separate implementation file (`tiny_sha.c`) and header (`tiny_sha.h`)  
 - Incremental (streaming) API: `Init`, `Update`, `Final` — all functions return `bool`  
 - Wrapper functions for each algorithm for single-shot hashing — return `bool`  
@@ -38,8 +39,10 @@ gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 tiny_sha.c test_sha.c -o test_sha
 
 The header handles internal dependencies automatically:
 
-- SHA-224 uses SHA-256 internally.  
-- SHA-384 uses SHA-512 internally.  
+- SHA-224 uses SHA-256 internally.
+- SHA-384 uses SHA-512 internally.
+- SHA-512/224 uses SHA-512 internally.
+- SHA-512/256 uses SHA-512 internally.  
 
 ---
 
@@ -108,12 +111,12 @@ The -D flags let you enable/disable specific algorithms.
 
 int main() {
     const char *msg = "Hello, Tiny SHA!";
-    uint8_t hash[SHA256_HASH_SIZE];
+    uint8_t hash[SHA256_DIGEST_SIZE];
 
     // Wrapper returns bool
     if (SHA256((const uint8_t*)msg, strlen(msg), hash)) {
         printf("SHA-256: ");
-        for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+        for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
             printf("%02x", hash[i]);
         }
         printf("\n");
@@ -133,7 +136,7 @@ int main() {
 
 int main() {
     const char *msg = "Hello, Tiny SHA!";
-    uint8_t hash[SHA256_HASH_SIZE];
+    uint8_t hash[SHA256_DIGEST_SIZE];
     SHA256_CTX ctx;
 
     if (sha256_init(&ctx) &&
@@ -141,7 +144,7 @@ int main() {
         sha256_final(&ctx, hash)) {
 
         printf("SHA-256: ");
-        for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+        for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
             printf("%02x", hash[i]);
         }
         printf("\n");
@@ -157,13 +160,15 @@ int main() {
 
 ## Output Sizes
 
-| Algorithm | Digest Size |
-|-----------|------------|
-| SHA-1     | 20 bytes   |
-| SHA-224   | 28 bytes   |
-| SHA-256   | 32 bytes   |
-| SHA-384   | 48 bytes   |
-| SHA-512   | 64 bytes   |
+| Algorithm   | Digest Size |
+|-------------|-------------|
+| SHA-1       |  20 bytes   |
+| SHA-224     |  28 bytes   |
+| SHA-256     |  32 bytes   |
+| SHA-384     |  48 bytes   |
+| SHA-512     |  64 bytes   |
+| SHA-512/224 |	 28 bytes   |
+| SHA-512/256 |	 32 bytes   |
 
 ---
 
