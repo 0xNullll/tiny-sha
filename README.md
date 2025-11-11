@@ -7,7 +7,7 @@ All algorithms are **enabled by default**. It is portable, endian-aware, and opt
 
 - SHA-1, SHA-224, SHA-256, SHA-384, SHA-512  
 - Single header file (`tiny_sha.h`)  
-- Incremental (streaming) API: `Init`, `Update`, `Final`  
+- Incremental (streaming) API: `Init`, `Update`, `Final` ,  
 - Header-only and portable  
 - Handles endianness automatically  
 
@@ -24,23 +24,20 @@ Then include the header normally in other files without defining the implementat
 
 Usage Example
 ```c
-#include <stdio.h>
-#include "tiny_sha.h"
-
 int main() {
     const char *msg = "Hello, Tiny SHA!";
     uint8_t hash[SHA256_HASH_SIZE];
 
-    SHA256_CTX ctx;
-    sha256_init(&ctx);
-    sha256_update(&ctx, (const uint8_t*)msg, strlen(msg));
-    sha256_final(&ctx, hash);
-
-    printf("SHA-256: ");
-    for (int i = 0; i < SHA256_HASH_SIZE; i++) {
-        printf("%02x", hash[i]);
+    // Wrapper function returns bool indicating success
+    if (SHA256((const uint8_t*)msg, strlen(msg), hash)) {
+        printf("SHA-256: ");
+        for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+            printf("%02x", hash[i]);
+        }
+        printf("\n");
+    } else {
+        printf("SHA-256 computation failed!\n");
     }
-    printf("\n");
 
     return 0;
 }
