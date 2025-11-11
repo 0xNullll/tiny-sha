@@ -18,20 +18,30 @@ Include the header in **one C file** with implementation:
 ```c
 #define TINY_SHA_IMPLEMENTATION
 #include "tiny_sha.h"
+```
 
-Notes
+Then include the header normally in other files without defining the implementation macro.
 
-Output sizes:
+Usage Example
+```c
+#include <stdio.h>
+#include "tiny_sha.h"
 
-SHA-1: 20 bytes
+int main() {
+    const char *msg = "Hello, Tiny SHA!";
+    uint8_t hash[SHA256_HASH_SIZE];
 
-SHA-224: 28 bytes
+    SHA256_CTX ctx;
+    sha256_init(&ctx);
+    sha256_update(&ctx, (const uint8_t*)msg, strlen(msg));
+    sha256_final(&ctx, hash);
 
-SHA-256: 32 bytes
+    printf("SHA-256: ");
+    for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
 
-SHA-384: 48 bytes
-
-SHA-512: 64 bytes
-
-No external flags are required—all algorithms are enabled by default.
+    return 0;
+}
 ```
