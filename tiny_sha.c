@@ -129,8 +129,8 @@ bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]) {
 }
 
 bool SHA1(const uint8_t *data, size_t len, uint8_t digest[SHA1_DIGEST_SIZE]) {
-    SHA1_CTX c;
-    return SHA1Init(&c) && SHA1Update(&c, data, len) && SHA1Final(&c, digest);
+    SHA1_CTX ctx;
+    return SHA1Init(&ctx) && SHA1Update(&ctx, data, len) && SHA1Final(&ctx, digest);
 }
 
 #endif
@@ -276,8 +276,8 @@ bool SHA256Final(SHA256_CTX *ctx, uint8_t digest[SHA256_DIGEST_SIZE]) {
 }
 
 bool SHA256(const uint8_t *data, size_t len, uint8_t digest[SHA256_DIGEST_SIZE]){
-    SHA256_CTX c;
-    return SHA256Init(&c) && SHA256Update(&c, data, len) && SHA256Final(&c, digest);
+    SHA256_CTX ctx;
+    return SHA256Init(&ctx) && SHA256Update(&ctx, data, len) && SHA256Final(&ctx, digest);
 }
 
 #endif
@@ -516,8 +516,80 @@ bool SHA384Final(SHA384_CTX *ctx, uint8_t digest[SHA384_DIGEST_SIZE]) {
 }
 
 bool SHA384(const uint8_t *data, size_t len, uint8_t digest[SHA384_DIGEST_SIZE]) {
-    SHA384_CTX c;
-    return SHA384Init(&c) && SHA384Update(&c, data, len) && SHA384Final(&c, digest);   
+    SHA384_CTX ctx;
+    return SHA384Init(&ctx) && SHA384Update(&ctx, data, len) && SHA384Final(&ctx, digest);   
+}
+
+#endif
+
+#if ENABLE_SHA512_224
+
+bool SHA512_224Init(SHA512_224_CTX *ctx) {
+    memset(ctx, 0, sizeof(*ctx));
+
+    ctx->state[0] = U64(0x8c3d37c819544da2);
+    ctx->state[1] = U64(0x73e1996689dcd4d6);
+    ctx->state[2] = U64(0x1dfab7ae32ff9c82);
+    ctx->state[3] = U64(0x679dd514582f9fcf);
+    ctx->state[4] = U64(0x0f6d2b697bd44da8);
+    ctx->state[5] = U64(0x77e36f7304c48942);
+    ctx->state[6] = U64(0x3f9d85a86a1d36c8);
+    ctx->state[7] = U64(0x1112e6ad91d692a1);
+
+    ctx->md_len = SHA512_224_DIGEST_SIZE;
+    return true;
+}
+
+bool SHA512_224Update(SHA512_224_CTX *ctx, const uint8_t *data, size_t len) {
+    return SHA512Update((SHA512_CTX*)ctx, data, len);
+}
+
+bool SHA512_224Final(SHA512_224_CTX *ctx, uint8_t digest[SHA512_224_DIGEST_SIZE]) {
+    uint8_t full_digest[SHA512_DIGEST_SIZE];
+    if (!SHA512Final((SHA512_CTX*)ctx, full_digest)) return false;
+    memcpy(digest, full_digest, SHA512_224_DIGEST_SIZE);
+    return true;
+}
+
+bool SHA512_224(const uint8_t *data, size_t len, uint8_t digest[SHA512_224_DIGEST_SIZE]) {
+    SHA512_224_CTX ctx;
+    return SHA512_224Init(&ctx) && SHA512_224Update(&ctx, data, len) && SHA512_224Final(&ctx, digest);
+}
+
+#endif
+
+#if ENABLE_SHA512_256
+
+bool SHA512_256Init(SHA512_256_CTX *ctx) {
+    memset(ctx, 0, sizeof(*ctx));
+
+    ctx->state[0] = U64(0x22312194fc2bf72c);
+    ctx->state[1] = U64(0x9f555fa3c84c64c2);
+    ctx->state[2] = U64(0x2393b86b6f53b151);
+    ctx->state[3] = U64(0x963877195940eabd);
+    ctx->state[4] = U64(0x96283ee2a88effe3);
+    ctx->state[5] = U64(0xbe5e1e2553863992);
+    ctx->state[6] = U64(0x2b0199fc2c85b8aa);
+    ctx->state[7] = U64(0x0eb72ddc81c52ca2);
+
+    ctx->md_len = SHA512_256_DIGEST_SIZE;
+    return true;
+}
+
+bool SHA512_256Update(SHA512_256_CTX *ctx, const uint8_t *data, size_t len) {
+    return SHA512Update((SHA512_CTX*)ctx, data, len);
+}
+
+bool SHA512_256Final(SHA512_256_CTX *ctx, uint8_t digest[SHA512_256_DIGEST_SIZE]) {
+    uint8_t full_digest[SHA512_DIGEST_SIZE];
+    if (!SHA512Final((SHA512_CTX*)ctx, full_digest)) return false;
+    memcpy(digest, full_digest, SHA512_256_DIGEST_SIZE);
+    return true;
+}
+
+bool SHA512_256(const uint8_t *data, size_t len, uint8_t digest[SHA512_256_DIGEST_SIZE]) {
+    SHA512_256_CTX ctx;
+    return SHA512_256Init(&ctx) && SHA512_256Update(&ctx, data, len) && SHA512_256Final(&ctx, digest);
 }
 
 #endif
