@@ -1,3 +1,14 @@
+/*
+ * File: tiny_sha.h
+ * Author: 0xNullll
+ * Description: This header provides the public interface for the Tiny SHA library.
+ *              It defines context structs, function prototypes, feature flags,
+ *              and inline helpers for all supported SHA algorithms (SHA-1, SHA-224,
+ *              SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256).
+ *              Implementation is in tiny_sha.c.
+ * License: MIT
+ */
+
 #ifndef TINY_SHA_H
 #define TINY_SHA_H
 

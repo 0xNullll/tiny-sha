@@ -1,3 +1,14 @@
+/*
+ * File: tiny_sha.c
+ * Author: 0xNullll
+ * Description: Implementation of the Tiny SHA library. 
+ *              Provides the function definitions for all enabled SHA algorithms:
+ *              SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, and SHA-512/256.
+ *              Implements initialization, update, finalization, and single-shot hash functions.
+ *              Uses endian-aware macros and CPU-optimized block processing.
+ * License: MIT
+ */
+
 #define TINY_SHA_IMPLEMENTATION
 #include "tiny_sha.h"
 
