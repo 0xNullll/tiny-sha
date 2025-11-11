@@ -158,3 +158,21 @@ int main() {
 - No external dependencies — fully self-contained.  
 - All functions return `bool` to indicate success/failure.  
 - Designed for simplicity, speed, and ease of integration.  
+
+---
+
+## Why I made this
+
+I wrote **Tiny SHA** because I wanted a tiny, self-contained hashing library I can easily hook into my C projects (for example my PE dumper) without dragging in huge dependencies like OpenSSL. It's a learning tool first — implementing the algorithms helped me understand padding, endianness, and incremental hashing — but it's also practical: header-only, configurable (enable/disable algorithms), and prefixable so it won't clash with other code. The library is intentionally minimal so I can audit, modify, and extend it quickly while keeping the integration footprint small.
+
+---
+
+## References
+
+- RFC 6234 — *US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)*. Sample code & authoritative spec for SHA algorithms. :contentReference[oaicite:0]{index=0}
+- 
+---
+
+## License
+
+This project is released under the **MIT License**. See `LICENSE` for full text.
