@@ -12,6 +12,7 @@ SHA-3 is planned for future versions.
 - Separate implementation file (`tiny_sha.c`) and header (`tiny_sha.h`)  
 - Incremental (streaming) API: `Init`, `Update`, `Final` — all functions return `bool`  
 - Wrapper functions for each algorithm for single-shot hashing — return `bool`  
+- **Compare hash digests safely** with provided `CompareOrder` inline functions  
 - Handles endianness automatically  
 - Lightweight — the entire library is under 50 KB
 
@@ -154,6 +155,26 @@ int main() {
     }
 
     return 0;
+}
+```
+
+### Comparing Hash Digests
+
+You can compare two digests directly using the `CompareOrder` function:
+
+```c
+uint8_t hash1[SHA256_DIGEST_SIZE];
+uint8_t hash2[SHA256_DIGEST_SIZE];
+
+// Compute hash1 and hash2...
+
+int cmp = SHA256CompareOrder(hash1, hash2);
+if (cmp == 0) {
+    printf("Hashes are equal\n");
+} else if (cmp < 0) {
+    printf("hash1 < hash2\n");
+} else {
+    printf("hash1 > hash2\n");
 }
 ```
 
