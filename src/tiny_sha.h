@@ -203,6 +203,7 @@ static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) {
 #define SHA1Update       TSHASH_FN(SHA1Update)
 #define SHA1Final        TSHASH_FN(SHA1Final)
 #define SHA1             TSHASH_FN(SHA1)
+#define SHA1CompareOrder TSHASH_FN(SHA1CompareOrder)
 
 #define SHA1_BLOCK_SIZE 64
 #define SHA1_DIGEST_SIZE 20
@@ -219,16 +220,25 @@ bool SHA1Update(SHA1_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]);
 bool SHA1(const uint8_t *data, size_t len, uint8_t digest[SHA1_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA1CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA1_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-256
    ====================================== */
 #if ENABLE_SHA256
-#define SHA256Init   TSHASH_FN(SHA256Init)
-#define SHA256Update TSHASH_FN(SHA256Update)
-#define SHA256Final  TSHASH_FN(SHA256Final)
-#define SHA256       TSHASH_FN(SHA256)
+#define SHA256Init         TSHASH_FN(SHA256Init)
+#define SHA256Update       TSHASH_FN(SHA256Update)
+#define SHA256Final        TSHASH_FN(SHA256Final)
+#define SHA256             TSHASH_FN(SHA256)
+#define SHA256CompareOrder TSHASH_FN(SHA256CompareOrder)
 
 #define SHA256_BLOCK_SIZE 64
 #define SHA256_DIGEST_SIZE 32
@@ -246,16 +256,25 @@ bool SHA256Update(SHA256_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA256Final(SHA256_CTX *ctx, uint8_t digest[SHA256_DIGEST_SIZE]);
 bool SHA256(const uint8_t *data, size_t len, uint8_t digest[SHA256_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA256CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-224 (truncated SHA-256)
    ====================================== */
 #if ENABLE_SHA224
-#define SHA224Init   TSHASH_FN(SHA224Init)
-#define SHA224Update TSHASH_FN(SHA224Update)
-#define SHA224Final  TSHASH_FN(SHA224Final)
-#define SHA224       TSHASH_FN(SHA224)
+#define SHA224Init         TSHASH_FN(SHA224Init)
+#define SHA224Update       TSHASH_FN(SHA224Update)
+#define SHA224Final        TSHASH_FN(SHA224Final)
+#define SHA224             TSHASH_FN(SHA224)
+#define SHA224CompareOrder TSHASH_FN(SHA224CompareOrder)
 
 #define SHA224_BLOCK_SIZE 64
 #define SHA224_DIGEST_SIZE 28
@@ -267,16 +286,25 @@ bool SHA224Update(SHA224_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA224Final(SHA224_CTX *ctx, uint8_t digest[SHA224_DIGEST_SIZE]);
 bool SHA224(const uint8_t *data, size_t len, uint8_t digest[SHA224_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA224CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA224_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-512
    ====================================== */
 #if ENABLE_SHA512
-#define SHA512Init   TSHASH_FN(SHA512Init)
-#define SHA512Update TSHASH_FN(SHA512Update)
-#define SHA512Final  TSHASH_FN(SHA512Final)
-#define SHA512       TSHASH_FN(SHA512)
+#define SHA512Init         TSHASH_FN(SHA512Init)
+#define SHA512Update       TSHASH_FN(SHA512Update)
+#define SHA512Final        TSHASH_FN(SHA512Final)
+#define SHA512             TSHASH_FN(SHA512)
+#define SHA512CompareOrder TSHASH_FN(SHA512CompareOrder)
 
 #define SHA512_BLOCK_SIZE 128
 #define SHA512_DIGEST_SIZE 64
@@ -294,16 +322,25 @@ bool SHA512Update(SHA512_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA512Final(SHA512_CTX *ctx, uint8_t digest[SHA512_DIGEST_SIZE]);
 bool SHA512(const uint8_t *data, size_t len, uint8_t digest[SHA512_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA512CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA512_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-384 (truncated SHA-512)
    ====================================== */
 #if ENABLE_SHA384
-#define SHA384Init   TSHASH_FN(SHA384Init)
-#define SHA384Update TSHASH_FN(SHA384Update)
-#define SHA384Final  TSHASH_FN(SHA384Final)
-#define SHA384       TSHASH_FN(SHA384)
+#define SHA384Init         TSHASH_FN(SHA384Init)
+#define SHA384Update       TSHASH_FN(SHA384Update)
+#define SHA384Final        TSHASH_FN(SHA384Final)
+#define SHA384             TSHASH_FN(SHA384)
+#define SHA384CompareOrder TSHASH_FN(SHA384CompareOrder)
 
 #define SHA384_BLOCK_SIZE 128
 #define SHA384_DIGEST_SIZE 48
@@ -315,16 +352,25 @@ bool SHA384Update(SHA384_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA384Final(SHA384_CTX *ctx, uint8_t digest[SHA384_DIGEST_SIZE]);
 bool SHA384(const uint8_t *data, size_t len, uint8_t digest[SHA384_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA384CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA384_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-512/224 (truncated SHA-512)
    ====================================== */
 #if ENABLE_SHA512_224
-#define SHA512_224Init   TSHASH_FN(SHA512_224Init)
-#define SHA512_224Update TSHASH_FN(SHA512_224Update)
-#define SHA512_224Final  TSHASH_FN(SHA512_224Final)
-#define SHA512_224       TSHASH_FN(SHA512_224)
+#define SHA512_224Init         TSHASH_FN(SHA512_224Init)
+#define SHA512_224Update       TSHASH_FN(SHA512_224Update)
+#define SHA512_224Final        TSHASH_FN(SHA512_224Final)
+#define SHA512_224             TSHASH_FN(SHA512_224)
+#define SHA512_224CompareOrder TSHASH_FN(SHA512_224CompareOrder)
 
 #define SHA512_224_BLOCK_SIZE 128
 #define SHA512_224_DIGEST_SIZE 28
@@ -336,16 +382,25 @@ bool SHA512_224Update(SHA512_224_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA512_224Final(SHA512_224_CTX *ctx, uint8_t digest[SHA512_224_DIGEST_SIZE]);
 bool SHA512_224(const uint8_t *data, size_t len, uint8_t digest[SHA512_224_DIGEST_SIZE]);
 
+static FORCE_INLINE int SHA512_224CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA512_224_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
+
 #endif
 
 /* ======================================
    SHA-512/256 (truncated SHA-512)
    ====================================== */
 #if ENABLE_SHA512_256
-#define SHA512_256Init   TSHASH_FN(SHA512_256Init)
-#define SHA512_256Update TSHASH_FN(SHA512_256Update)
-#define SHA512_256Final  TSHASH_FN(SHA512_256Final)
-#define SHA512_256       TSHASH_FN(SHA512_256)
+#define SHA512_256Init         TSHASH_FN(SHA512_256Init)
+#define SHA512_256Update       TSHASH_FN(SHA512_256Update)
+#define SHA512_256Final        TSHASH_FN(SHA512_256Final)
+#define SHA512_256             TSHASH_FN(SHA512_256)
+#define SHA512_256CompareOrder TSHASH_FN(SHA512_256CompareOrder)
 
 #define SHA512_256_BLOCK_SIZE 128
 #define SHA512_256_DIGEST_SIZE 32
@@ -356,6 +411,14 @@ bool SHA512_256Init(SHA512_256_CTX *ctx);
 bool SHA512_256Update(SHA512_256_CTX *ctx, const uint8_t *data, size_t len);
 bool SHA512_256Final(SHA512_256_CTX *ctx, uint8_t digest[SHA512_256_DIGEST_SIZE]);
 bool SHA512_256(const uint8_t *data, size_t len, uint8_t digest[SHA512_256_DIGEST_SIZE]);
+
+static FORCE_INLINE int SHA512_256CompareOrder(const uint8_t *a, const uint8_t *b) {
+    for (size_t i = 0; i < SHA512_256_DIGEST_SIZE; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+    }
+    return 0;
+}
 
 #endif
 
