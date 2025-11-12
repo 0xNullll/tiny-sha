@@ -163,18 +163,60 @@ int main() {
 You can compare two digests directly using the `CompareOrder` function:
 
 ```c
-uint8_t hash1[SHA256_DIGEST_SIZE];
-uint8_t hash2[SHA256_DIGEST_SIZE];
+#include <stdio.h>
+#include <string.h>
+#include "tiny_sha.h"
 
-// Compute hash1 and hash2...
+int main() {
+    const char *msg1 = "Hello, Tiny SHA!";
+    const char *msg2 = "Hello, Tiny SHA!";
+    
+    uint8_t hash1[SHA256_DIGEST_SIZE];
+    uint8_t hash2[SHA256_DIGEST_SIZE];
+    
+    SHA256_CTX ctx;
 
-int cmp = SHA256CompareOrder(hash1, hash2);
-if (cmp == 0) {
-    printf("Hashes are equal\n");
-} else if (cmp < 0) {
-    printf("hash1 < hash2\n");
-} else {
-    printf("hash1 > hash2\n");
+    // Compute hash1
+    if (!(SHA256Init(&ctx) &&
+          SHA256Update(&ctx, (const uint8_t*)msg1, strlen(msg1)) &&
+          SHA256Final(&ctx, hash1))) {
+        printf("SHA-256 computation for hash1 failed!\n");
+        return 1;
+    }
+
+    // Compute hash2
+    if (!(SHA256Init(&ctx) &&
+          SHA256Update(&ctx, (const uint8_t*)msg2, strlen(msg2)) &&
+          SHA256Final(&ctx, hash2))) {
+        printf("SHA-256 computation for hash2 failed!\n");
+        return 1;
+    }
+
+    // Print hash1
+    printf("Hash1: ");
+    for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        printf("%02x", hash1[i]);
+    }
+    printf("\n");
+
+    // Print hash2
+    printf("Hash2: ");
+    for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        printf("%02x", hash2[i]);
+    }
+    printf("\n");
+
+    // Compare the two hashes using CompareOrder
+    int cmp = SHA256CompareOrder(hash1, hash2);
+    if (cmp == 0) {
+        printf("Hashes are equal\n");
+    } else if (cmp < 0) {
+        printf("hash1 < hash2\n");
+    } else {
+        printf("hash1 > hash2\n");
+    }
+
+    return 0;
 }
 ```
 
