@@ -152,21 +152,21 @@ static FORCE_INLINE uint64_t BE64(const uint8_t *p) {
 
 // Write back to memory (big-endian)
 static FORCE_INLINE void PUT_BE32(uint8_t *p, uint32_t x) {
-    p[0] = (x >> 24) & 0xFF;
-    p[1] = (x >> 16) & 0xFF;
-    p[2] = (x >> 8)  & 0xFF;
-    p[3] = x & 0xFF;
+    p[0] = (uint8_t)(x >> 24) & 0xFF;
+    p[1] = (uint8_t)(x >> 16) & 0xFF;
+    p[2] = (uint8_t)(x >> 8)  & 0xFF;
+    p[3] = (uint8_t)x & 0xFF;
 }
 
 static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) {
-    p[0] = (x >> 56) & 0xFF;
-    p[1] = (x >> 48) & 0xFF;
-    p[2] = (x >> 40) & 0xFF;
-    p[3] = (x >> 32) & 0xFF;
-    p[4] = (x >> 24) & 0xFF;
-    p[5] = (x >> 16) & 0xFF;
-    p[6] = (x >> 8)  & 0xFF;
-    p[7] = x & 0xFF;
+    p[0] = (uint8_t)(x >> 56) & 0xFF;
+    p[1] = (uint8_t)(x >> 48) & 0xFF;
+    p[2] = (uint8_t)(x >> 40) & 0xFF;
+    p[3] = (uint8_t)(x >> 32) & 0xFF;
+    p[4] = (uint8_t)(x >> 24) & 0xFF;
+    p[5] = (uint8_t)(x >> 16) & 0xFF;
+    p[6] = (uint8_t)(x >> 8)  & 0xFF;
+    p[7] = (uint8_t)x & 0xFF;
 }
 
 /* ----------------------
