@@ -86,22 +86,26 @@ static bool SHA1ProcessBlock(SHA1_CTX *ctx, const uint8_t *block) {
     return true;
 } 
 
-bool SHA1Update(SHA1_CTX *ctx,const uint8_t *data,size_t len) {
-    ctx->len += len * 8;
+bool SHA1Update(SHA1_CTX *ctx, const uint8_t *data, size_t len) {
+    if (!ctx || !data) return false;
 
-    while(len > 0) {
-        uint32_t to_copy = 64 - ctx->num;
-        if(to_copy > len) to_copy = (uint32_t)len;
-        memcpy((uint8_t*)ctx->buf + ctx->num, data, to_copy);
-        ctx->num += to_copy;
+    ctx->len += (uint64_t)len * 8;  // total length in bits
+
+    while (len > 0) {
+        size_t to_copy = 64 - ctx->num;   // remaining space in buffer
+        if (to_copy > len) to_copy = len;
+
+        memcpy(ctx->buf + ctx->num, data, to_copy);
+        ctx->num += (uint32_t)to_copy;    // ctx->num is 32-bit
         data += to_copy;
         len -= to_copy;
 
-        if(ctx->num == 64) {
-            if (!SHA1ProcessBlock(ctx, (uint8_t*)ctx->buf)) return false;
+        if (ctx->num == 64) {
+            if (!SHA1ProcessBlock(ctx, ctx->buf)) return false;
             ctx->num = 0;
         }
     }
+
     return true;
 }
 
@@ -784,7 +788,7 @@ static FORCE_INLINE void squeeze_block(uint64_t A[5][5], uint8_t *buf, size_t r)
     }
 }
 
-static bool keccakP(uint64_t state[5][5], unsigned int w, unsigned int nr) {
+bool keccakP(uint64_t state[5][5], unsigned int w, unsigned int nr) {
     if (!state || nr > KECCAK_ROUNDS || (w != 64 && w != 32)) return false;
 
     uint64_t mask = (w == 64) ? 0xFFFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL;
@@ -905,7 +909,7 @@ static FORCE_INLINE bool k_hash_wrap(const uint8_t *data, size_t len,
     }
 
     bool KeccakFinal(KECCAK_CTX *ctx) {
-        return k_squeeze_wrap(ctx);
+        return k_final_wrap(ctx);
     }
 
     bool KeccakSqueeze(KECCAK_CTX *ctx, uint8_t *output, size_t outlen) {
@@ -1091,7 +1095,7 @@ bool SHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
    ====================================== */
 #if ENABLE_SHAKE128 || ENABLE_SHAKE256
 
-static inline void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out) {
+void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out) {
     size_t full_bytes = s / 8;
     size_t rem_bits  = s % 8;
 
@@ -1104,7 +1108,7 @@ static inline void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out
     }
 }
 
-static inline void concat_bits(const uint8_t *X, size_t x_bits,
+void concat_bits(const uint8_t *X, size_t x_bits,
                                const uint8_t *Y, size_t y_bits,
                                uint8_t *out) {
 
