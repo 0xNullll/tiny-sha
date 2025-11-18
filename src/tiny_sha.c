@@ -1,11 +1,13 @@
 /*
  * File: tiny_sha.c
  * Author: 0xNullll
- * Description: Implementation of the Tiny SHA library. 
- *              Provides the function definitions for all enabled SHA algorithms:
- *              SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, and SHA-512/256.
- *              implemented update and finalization functions.
- *              Uses endian-aware macros and CPU-optimized block processing.
+ * Description: Implementation of the Tiny SHA library.
+ *              Provides full support for all enabled SHA algorithms:
+ *              SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256,
+ *              and SHA-3 variants (SHA3-224, SHA3-256, SHA3-384, SHA3-512, as well as raw SHAKE if enabled).
+ *              Includes initialization, update, and finalization functions for each variant.
+ *              Uses endian-aware macros, CPU-optimized block processing, and clean modular design.
+ *              Designed to be lightweight, self-contained, and suitable for embedded or minimal environments.
  * License: MIT
  */
 
