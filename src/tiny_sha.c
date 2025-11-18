@@ -4,7 +4,7 @@
  * Description: Implementation of the Tiny SHA library. 
  *              Provides the function definitions for all enabled SHA algorithms:
  *              SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, and SHA-512/256.
- *              Implements initialization, update, finalization, and single-shot hash functions.
+ *              implemented update and finalization functions.
  *              Uses endian-aware macros and CPU-optimized block processing.
  * License: MIT
  */
@@ -23,10 +23,10 @@
 #define K_60_79 0xca62c1d6UL
 
 // SHA-1 round functions f(t; B, C, D)
-#define F_00_19(B,C,D)  (((B) & (C)) | ((~(B)) & (D)))           // Ch, rounds 0–19
-#define F_20_39(B,C,D)  ((B) ^ (C) ^ (D))                        // Parity, rounds 20–39
-#define F_40_59(B,C,D)  (((B) & (C)) | ((B) & (D)) | ((C) & (D)))// Maj, rounds 40–59
-#define F_60_79(B,C,D)  F_20_39((B),(C),(D))                     // Parity again, rounds 60–79
+#define F_00_19(B,C,D)  (((B) & (C)) | ((~(B)) & (D)))            // Ch,           rounds 0–19
+#define F_20_39(B,C,D)  ((B) ^ (C) ^ (D))                         // Parity,       rounds 20–39
+#define F_40_59(B,C,D)  (((B) & (C)) | ((B) & (D)) | ((C) & (D))) // Maj,          rounds 40–59
+#define F_60_79(B,C,D)  F_20_39((B),(C),(D))                      // Parity again, rounds 60–79
 
 bool SHA1Init(SHA1_CTX *ctx) {
     memset(ctx, 0, sizeof(*ctx));
@@ -39,13 +39,13 @@ bool SHA1Init(SHA1_CTX *ctx) {
     return true;
 }
 
-static inline bool SHA1ProcessBlock(SHA1_CTX *ctx, const uint8_t *block) {
+static bool SHA1ProcessBlock(SHA1_CTX *ctx, const uint8_t *block) {
     uint32_t W[80];
     uint32_t A,B,C,D,E,TEMP;
 
     // Copy block to W[0..15] (big-endian)
     for(int i = 0; i < 16; i++)
-        W[i] = LOAD32(block + i*4);
+        W[i] = SHA_LOAD32(block + i*4);
 
     // Expand W[16..79]
     for(int t=16;t<80;t++) {
@@ -124,24 +124,19 @@ bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]) {
     }
 
     // Append length in bits using STORE64 (CPU-endian aware)
-    STORE64(block + 56, total_bits);
+    SHA_STORE64(block + 56, total_bits);
 
     // Process final block
     if (!SHA1ProcessBlock(ctx, block)) return false;
 
     // Output digest using STORE32
-    STORE32(digest + 0,  ctx->h0);
-    STORE32(digest + 4,  ctx->h1);
-    STORE32(digest + 8,  ctx->h2);
-    STORE32(digest + 12, ctx->h3);
-    STORE32(digest + 16, ctx->h4);
+    SHA_STORE32(digest + 0,  ctx->h0);
+    SHA_STORE32(digest + 4,  ctx->h1);
+    SHA_STORE32(digest + 8,  ctx->h2);
+    SHA_STORE32(digest + 12, ctx->h3);
+    SHA_STORE32(digest + 16, ctx->h4);
 
     return true;
-}
-
-bool SHA1(const uint8_t *data, size_t len, uint8_t digest[SHA1_DIGEST_SIZE]) {
-    SHA1_CTX ctx;
-    return SHA1Init(&ctx) && SHA1Update(&ctx, data, len) && SHA1Final(&ctx, digest);
 }
 
 #endif
@@ -192,11 +187,10 @@ bool SHA256Init(SHA256_CTX *ctx) {
     ctx->state[6] = 0x1f83d9abUL;
     ctx->state[7] = 0x5be0cd19UL;
     
-    ctx->md_len = SHA256_DIGEST_SIZE;
     return true;
 }
 
-static inline bool SHA256ProcessBlock(SHA256_CTX *ctx, const uint8_t *block) {
+static bool SHA256ProcessBlock(SHA256_CTX *ctx, const uint8_t *block) {
     uint32_t W[64], A, B, C, D, E, F, G, H, T1, T2;
 
     // Prepare 16 words
@@ -268,7 +262,7 @@ bool SHA256Final(SHA256_CTX *ctx, uint8_t digest[SHA256_DIGEST_SIZE]) {
 
     // Append message length in bits using STORE64
     uint64_t bit_len = ctx->len * 8;
-    STORE64(block + 56, bit_len);
+    SHA_STORE64(block + 56, bit_len);
 
     // Process final block
     if (!SHA256ProcessBlock(ctx, block)) return false;
@@ -281,14 +275,9 @@ bool SHA256Final(SHA256_CTX *ctx, uint8_t digest[SHA256_DIGEST_SIZE]) {
 
     // Store digest using STORE32 (CPU-endian optimized)
     for (size_t i = 0; i < 8; i++)
-        STORE32(digest + i*4, ctx->state[i]);
+        SHA_STORE32(digest + i*4, ctx->state[i]);
 
     return true;
-}
-
-bool SHA256(const uint8_t *data, size_t len, uint8_t digest[SHA256_DIGEST_SIZE]){
-    SHA256_CTX ctx;
-    return SHA256Init(&ctx) && SHA256Update(&ctx, data, len) && SHA256Final(&ctx, digest);
 }
 
 #endif
@@ -307,7 +296,6 @@ bool SHA224Init(SHA224_CTX *ctx) {
     ctx->state[6] = 0x64f98fa7UL;
     ctx->state[7] = 0xbefa4fa4UL;
 
-    ctx->md_len = SHA224_DIGEST_SIZE;
     return true;
 }
 
@@ -322,22 +310,10 @@ bool SHA224Final(SHA224_CTX *ctx, uint8_t digest[SHA224_DIGEST_SIZE]) {
     return true;
 }
 
-bool SHA224(const uint8_t *data, size_t len, uint8_t digest[SHA224_DIGEST_SIZE]) {
-    SHA224_CTX ctx;
-    return SHA224Init(&ctx) && SHA224Update(&ctx, data, len) && SHA224Final(&ctx, digest);   
-}
 
 #endif
 
 #if ENABLE_SHA512
-
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
-# define U64(C) C##UI64
-#elif defined(__arch64__)
-# define U64(C) C##UL
-#else
-# define U64(C) C##ULL
-#endif
 
 static const uint64_t K512[80] = {
     U64(0x428a2f98d728ae22), U64(0x7137449123ef65cd),
@@ -403,15 +379,14 @@ bool SHA512Init(SHA512_CTX *ctx) {
     ctx->state[6] = U64(0x1f83d9abfb41bd6b);
     ctx->state[7] = U64(0x5be0cd19137e2179);
 
-    ctx->md_len = SHA512_DIGEST_SIZE;
     return true;
 }
 
-static inline bool SHA512ProcessBlock(SHA512_CTX *ctx, const uint8_t *block) {
+static bool SHA512ProcessBlock(SHA512_CTX *ctx, const uint8_t *block) {
     uint64_t W[80], a,b,c,d,e,f,g,h,T1,T2;
 
     for (int t=0; t<16; t++) 
-        W[t] = LOAD64(block + t*8);
+        W[t] = SHA_LOAD64(block + t*8);
 
     for (int t=16; t<80; t++) 
         W[t] = SHA512_SSIG1(W[t-2]) + W[t-7] + SHA512_SSIG0(W[t-15]) + W[t-16];
@@ -470,8 +445,8 @@ bool SHA512Final(SHA512_CTX *ctx, uint8_t digest[SHA512_DIGEST_SIZE]) {
     uint64_t high = ctx->Nh, low = ctx->Nl;
 
     // encode length (big-endian aware)
-    STORE64(len_bytes, high);
-    STORE64(len_bytes + 8, low);
+    SHA_STORE64(len_bytes, high);
+    SHA_STORE64(len_bytes + 8, low);
 
     // compute padding length to reach 112 bytes (128-16) before length
     size_t pad_len = (ctx->buf_len < 112) ? (112 - ctx->buf_len)
@@ -485,14 +460,9 @@ bool SHA512Final(SHA512_CTX *ctx, uint8_t digest[SHA512_DIGEST_SIZE]) {
 
     // store final hash state into digest using STORE64 (CPU-endian aware)
     for (int i = 0; i < 8; i++)
-        STORE64(digest + i*8, ctx->state[i]);
+        SHA_STORE64(digest + i*8, ctx->state[i]);
 
     return true;
-}
-
-bool SHA512(const uint8_t *data, size_t len, uint8_t digest[SHA512_DIGEST_SIZE]) {
-    SHA512_CTX ctx;
-    return SHA512Init(&ctx) && SHA512Update(&ctx, data, len) && SHA512Final(&ctx, digest);
 }
 
 #endif
@@ -511,7 +481,6 @@ bool SHA384Init(SHA384_CTX *ctx) {
     ctx->state[6] = U64(0xdb0c2e0d64f98fa7);
     ctx->state[7] = U64(0x47b5481dbefa4fa4);
 
-    ctx->md_len = SHA384_DIGEST_SIZE;
     return true;
 }
 
@@ -524,11 +493,6 @@ bool SHA384Final(SHA384_CTX *ctx, uint8_t digest[SHA384_DIGEST_SIZE]) {
     if (!SHA512Final((SHA512_CTX*)ctx, full_digest)) return false;
     memcpy(digest, full_digest, SHA384_DIGEST_SIZE);
     return true;
-}
-
-bool SHA384(const uint8_t *data, size_t len, uint8_t digest[SHA384_DIGEST_SIZE]) {
-    SHA384_CTX ctx;
-    return SHA384Init(&ctx) && SHA384Update(&ctx, data, len) && SHA384Final(&ctx, digest);   
 }
 
 #endif
@@ -547,7 +511,6 @@ bool SHA512_224Init(SHA512_224_CTX *ctx) {
     ctx->state[6] = U64(0x3f9d85a86a1d36c8);
     ctx->state[7] = U64(0x1112e6ad91d692a1);
 
-    ctx->md_len = SHA512_224_DIGEST_SIZE;
     return true;
 }
 
@@ -560,11 +523,6 @@ bool SHA512_224Final(SHA512_224_CTX *ctx, uint8_t digest[SHA512_224_DIGEST_SIZE]
     if (!SHA512Final((SHA512_CTX*)ctx, full_digest)) return false;
     memcpy(digest, full_digest, SHA512_224_DIGEST_SIZE);
     return true;
-}
-
-bool SHA512_224(const uint8_t *data, size_t len, uint8_t digest[SHA512_224_DIGEST_SIZE]) {
-    SHA512_224_CTX ctx;
-    return SHA512_224Init(&ctx) && SHA512_224Update(&ctx, data, len) && SHA512_224Final(&ctx, digest);
 }
 
 #endif
@@ -583,7 +541,6 @@ bool SHA512_256Init(SHA512_256_CTX *ctx) {
     ctx->state[6] = U64(0x2b0199fc2c85b8aa);
     ctx->state[7] = U64(0x0eb72ddc81c52ca2);
 
-    ctx->md_len = SHA512_256_DIGEST_SIZE;
     return true;
 }
 
@@ -598,11 +555,648 @@ bool SHA512_256Final(SHA512_256_CTX *ctx, uint8_t digest[SHA512_256_DIGEST_SIZE]
     return true;
 }
 
-bool SHA512_256(const uint8_t *data, size_t len, uint8_t digest[SHA512_256_DIGEST_SIZE]) {
-    SHA512_256_CTX ctx;
-    return SHA512_256Init(&ctx) && SHA512_256Update(&ctx, data, len) && SHA512_256Final(&ctx, digest);
+#endif
+
+#if ENABLE_KECCAK_CORE
+
+// Precomputed rotation offsets for the ρ (rho) step of Keccak-f[1600].
+// Each entry rhotates[x][y] specifies the number of bits to rotate the lane A[x][y] left.
+// Derived from Section 3.2.2 of FIPS PUB 202, modulo lane size w=64.
+static const uint8_t rhotates[5][5] = {
+    {  0,  1, 62, 28, 27 },
+    { 36, 44,  6, 55, 20 },
+    {  3, 10, 43, 25, 39 },
+    { 41, 45, 15, 21,  8 },
+    { 18,  2, 61, 56, 14 }
+};
+
+// Precomputed round constants for the ι (iota) step of Keccak-f[1600].
+// Each entry iotas[round] corresponds to the round constant RC for that round.
+// Derived from Section 3.2.5 of FIPS PUB 202, expressed as 64-bit unsigned integers.
+// Precomputing the values improves clarity and runtime efficiency.
+static const uint64_t iotas[24] = {
+    U64(0x0000000000000001), U64(0x0000000000008082),
+    U64(0x800000000000808a), U64(0x8000000080008000),
+    U64(0x000000000000808b), U64(0x0000000080000001),
+    U64(0x8000000080008081), U64(0x8000000000008009),
+    U64(0x000000000000008a), U64(0x0000000000000088),
+    U64(0x0000000080008009), U64(0x000000008000000a),
+    U64(0x000000008000808b), U64(0x800000000000008b),
+    U64(0x8000000000008089), U64(0x8000000000008003),
+    U64(0x8000000000008002), U64(0x8000000000000080),
+    U64(0x000000000000800a), U64(0x800000008000000a),
+    U64(0x8000000080008081), U64(0x8000000000008080),
+    U64(0x0000000080000001), U64(0x8000000080008008)
+};
+
+#define KECCAK_ROUNDS 24
+
+#define SHA3_KECCAK_F_WIDTH 1600
+
+/*
+ * Straightforward implementation of the θ (theta) step of Keccak-f[1600],
+ * following Section 3.2.1 of FIPS PUB 202 "SHA-3 Standard: Permutation-Based
+ * Hash and Extendible-Output Functions" as closely as possible. 
+ */
+static void Theta(uint64_t A[5][5]) {
+    uint64_t C[5], D[5];
+
+    C[0] = A[0][0];
+    C[1] = A[0][1];
+    C[2] = A[0][2];
+    C[3] = A[0][3];
+    C[4] = A[0][4];
+
+    for (int y = 1; y < 5; y++) {
+        C[0] ^= A[y][0];
+        C[1] ^= A[y][1];
+        C[2] ^= A[y][2];
+        C[3] ^= A[y][3];
+        C[4] ^= A[y][4];
+    }
+
+    D[0] = ROTL64(C[1], 1) ^ C[4];
+    D[1] = ROTL64(C[2], 1) ^ C[0];
+    D[2] = ROTL64(C[3], 1) ^ C[1];
+    D[3] = ROTL64(C[4], 1) ^ C[2];
+    D[4] = ROTL64(C[0], 1) ^ C[3];
+
+    for (int y = 0; y < 5; y++) {
+        A[y][0] ^= D[0];
+        A[y][1] ^= D[1];
+        A[y][2] ^= D[2];
+        A[y][3] ^= D[3];
+        A[y][4] ^= D[4];
+    }
 }
 
-#endif
+// /*
+//  * Straightforward, table-driven implementation of the ρ (rho) step of Keccak-f[1600],
+//  * following Section 3.2.2 of FIPS PUB 202 "SHA-3 Standard: Permutation-Based
+//  * Hash and Extendible-Output Functions". 
+//  * 
+//  * Uses precomputed lane rotation offsets (rhotates) for maximum clarity and efficiency.
+//  */
+
+static void Rho(uint64_t A[5][5]) {
+    for (int y = 0; y < 5; y++) {
+        A[y][0] = ROTL64(A[y][0], rhotates[y][0]);
+        A[y][1] = ROTL64(A[y][1], rhotates[y][1]);
+        A[y][2] = ROTL64(A[y][2], rhotates[y][2]);
+        A[y][3] = ROTL64(A[y][3], rhotates[y][3]);
+        A[y][4] = ROTL64(A[y][4], rhotates[y][4]);
+    }
+}
+
+/*
+ * Straightforward, fully unrolled implementation of the π (pi) step of Keccak-f[1600],
+ * following Section 3.2.3 of FIPS PUB 202 "SHA-3 Standard: Permutation-Based
+ * Hash and Extendible-Output Functions".
+ *
+ * Maps each lane A[x][y] to its new position A[y][(2x + 3y) % 5] according to the spec.
+ * Loop is unrolled manually to avoid modulo operations and improve performance.
+ */
+static void Pi(uint64_t A[5][5]) {
+    uint64_t T[5][5];
+
+    // T = A
+    memcpy(T, A, sizeof(T));
+
+    // A[y][x] = T[x][(3*y+x)%5]
+    A[0][0] = T[0][0];
+    A[0][1] = T[1][1];
+    A[0][2] = T[2][2];
+    A[0][3] = T[3][3];
+    A[0][4] = T[4][4];
+
+    A[1][0] = T[0][3];
+    A[1][1] = T[1][4];
+    A[1][2] = T[2][0];
+    A[1][3] = T[3][1];
+    A[1][4] = T[4][2];
+
+    A[2][0] = T[0][1];
+    A[2][1] = T[1][2];
+    A[2][2] = T[2][3];
+    A[2][3] = T[3][4];
+    A[2][4] = T[4][0];
+
+    A[3][0] = T[0][4];
+    A[3][1] = T[1][0];
+    A[3][2] = T[2][1];
+    A[3][3] = T[3][2];
+    A[3][4] = T[4][3];
+
+    A[4][0] = T[0][2];
+    A[4][1] = T[1][3];
+    A[4][2] = T[2][4];
+    A[4][3] = T[3][0];
+    A[4][4] = T[4][1];
+}
+
+/*
+ * Straightforward, row-wise implementation of the χ (chi) step of Keccak-f[1600],
+ * following Section 3.2.4 of FIPS PUB 202 "SHA-3 Standard: Permutation-Based
+ * Hash and Extendible-Output Functions".
+ *
+ * Applies a non-linear transformation on each row: 
+ * each bit A[y][x] is XORed with the AND of the complement of the next bit and the bit after that.
+ * Loop over rows; each row is processed with fully unrolled bitwise operations for clarity.
+ */
+static void Chi(uint64_t A[5][5]) {
+    uint64_t C[5];
+
+    for (int y = 0; y < 5; y++) {
+        C[0] = A[y][0] ^ (~A[y][1] & A[y][2]);
+        C[1] = A[y][1] ^ (~A[y][2] & A[y][3]);
+        C[2] = A[y][2] ^ (~A[y][3] & A[y][4]);
+        C[3] = A[y][3] ^ (~A[y][4] & A[y][0]);
+        C[4] = A[y][4] ^ (~A[y][0] & A[y][1]);
+
+        A[y][0] = C[0];
+        A[y][1] = C[1];
+        A[y][2] = C[2];
+        A[y][3] = C[3];
+        A[y][4] = C[4];
+    }
+}
+
+/*
+ * Straightforward implementation of the ι (iota) step of Keccak-f[1600],
+ * following Section 3.2.5 of FIPS PUB 202 "SHA-3 Standard: Permutation-Based
+ * Hash and Extendible-Output Functions".
+ *
+ * Injects the round constant for round 'i' into the first lane A[0][0] via XOR.
+ * Precomputed 64-bit constants (iotas) are used for clarity and efficiency.
+ */
+static void Iota(uint64_t A[5][5], size_t i) {
+    A[0][0] ^= iotas[i];
+}
+
+/*
+ * Executes the Keccak-p[b, nr] permutation on state A,
+ * performing 'nr' rounds as specified in FIPS PUB 202.
+ *
+ * Each round applies, in order, the five step mappings:
+ * θ (Theta), ρ (Rho), π (Pi), χ (Chi), and ι (Iota).
+ * The number of rounds is parameterized by 'nr', and precomputed
+ * constants and rotation offsets are used for efficiency.
+ */
+static FORCE_INLINE void Round(uint64_t A[5][5], size_t i, uint64_t lane_mask) {
+    Theta(A);
+    Rho(A);
+    Pi(A);
+    Chi(A);
+
+    // Apply lane mask after each step or at least here
+    for (size_t y = 0; y < 5; y++) {
+        for (size_t x = 0; x < 5; x++) {
+            A[y][x] &= lane_mask;
+        }
+    }
+
+    Iota(A, i);  // round constant step
+}
+
+/* ----------------------
+   Keccak block functions
+   ---------------------- */
+static FORCE_INLINE void absorb_block(uint64_t A[5][5], const uint8_t *buf, size_t r) {
+    size_t lanes = r / 8;
+    for (size_t i = 0; i < lanes; i++) {
+        size_t x = i % 5;
+        size_t y = i / 5;
+        uint64_t lane = KECCAK_LOAD64(buf + i * 8);
+
+    A[y][x] ^= lane;
+    }
+}
+
+static FORCE_INLINE void squeeze_block(uint64_t A[5][5], uint8_t *buf, size_t r) {
+    size_t lanes = r / 8;
+    for (size_t i = 0; i < lanes; i++) {
+        size_t x = i % 5;
+        size_t y = i / 5;
+        
+        uint64_t lane = A[y][x];
+        
+        KECCAK_STORE64(buf + i * 8, lane);
+    }
+}
+
+static bool keccakP(uint64_t state[5][5], unsigned int w, unsigned int nr) {
+    if (!state || nr > KECCAK_ROUNDS || (w != 64 && w != 32)) return false;
+
+    uint64_t mask = (w == 64) ? 0xFFFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL;
+
+    for (unsigned int i = 0; i < nr; i++) {
+        Round(state, i, mask); // pass mask to Round so lane size is applied
+    }
+
+    return true;
+}
+
+/* -------------------------
+   KECCAK_CTX wrappers
+   ------------------------- */
+static FORCE_INLINE bool k_init_wrap(KECCAK_CTX *ctx, size_t rate, uint8_t suffix) {
+    memset(ctx->state, 0, sizeof(ctx->state));
+    memset(ctx->buf, 0, sizeof(ctx->buf));
+    ctx->buf_len = 0;
+    ctx->rate = rate;
+    ctx->suffix = suffix;
+    ctx->finalized = 0;
+    return true;
+}
+
+/* absorb into ctx (buffers partial blocks, processes full blocks) */
+static bool k_absorb_wrap(KECCAK_CTX *ctx, const uint8_t *input, size_t inlen) {
+    if (ctx->finalized) return false; // Cannot absorb after finalization
+
+    size_t offset = 0;
+
+    while (inlen > 0) {
+        size_t space = ctx->rate - ctx->buf_len;
+        size_t to_copy = (inlen < space) ? inlen : space;
+
+        memcpy(ctx->buf + ctx->buf_len, input + offset, to_copy);
+        ctx->buf_len += to_copy;
+        offset += to_copy;
+        inlen -= to_copy;
+
+        if (ctx->buf_len == ctx->rate) {
+            absorb_block(ctx->state, ctx->buf, ctx->rate);
+            keccakP(ctx->state, 64, KECCAK_ROUNDS);
+            ctx->buf_len = 0;
+        }
+    }
+
+    return true;
+}
+
+/* finalization: multi-rate padding (domain suffix + 10*1), absorb last block */
+static bool k_final_wrap(KECCAK_CTX *ctx) {
+    if (ctx->finalized) return false;
+
+    size_t r = ctx->rate;
+    size_t num = ctx->buf_len;
+
+    memset(ctx->buf + num, 0, r - num);
+
+    if (num == r - 1)
+        ctx->buf[num] ^= ctx->suffix ^ 0x80;  // combine suffix + final bit
+    else {
+        ctx->buf[num] ^= ctx->suffix;
+        ctx->buf[r - 1] ^= 0x80;
+    }
+
+    absorb_block(ctx->state, ctx->buf, r);
+    keccakP(ctx->state, 64, KECCAK_ROUNDS);
+
+    ctx->buf_len = 0;
+    ctx->finalized = 1;
+    return true;
+}
+
+/* squeeze: produce outlen bytes. Uses permutation between full-rate blocks */
+static bool k_squeeze_wrap(KECCAK_CTX *ctx, uint8_t *output, size_t outlen) {
+    if (!ctx->finalized) {
+        if (!k_final_wrap(ctx)) return false;
+    }
+
+    size_t offset = 0;
+    uint8_t tmp[200];
+
+    while (outlen > 0) {
+        size_t block = (outlen < ctx->rate) ? outlen : ctx->rate;
+
+        /* always squeeze into tmp, copy requested bytes */
+        squeeze_block(ctx->state, tmp, ctx->rate);
+        memcpy(output + offset, tmp, block);
+
+        offset += block;
+        outlen -= block;
+
+        if (outlen > 0)
+            keccakP(ctx->state, 64, KECCAK_ROUNDS);
+    }
+
+    return true;
+}
+
+static FORCE_INLINE bool k_hash_wrap(const uint8_t *data, size_t len,
+                                     uint8_t *digest, size_t outlen,
+                                     size_t rate, uint8_t suffix) {
+    KECCAK_CTX ctx;
+    return k_init_wrap(&ctx, rate, suffix)
+        && k_absorb_wrap(&ctx, data, len)
+        && k_final_wrap(&ctx)
+        && k_squeeze_wrap(&ctx, digest, outlen);
+}
+
+#if ENABLE_RAW_KECCAK
+
+    bool KeccakInit(KECCAK_CTX *ctx, size_t rate, uint8_t suffix) {
+        return k_init_wrap(ctx, rate, suffix);
+    }
+
+    bool KeccakAbsorb(KECCAK_CTX *ctx, const uint8_t *data, size_t len) {
+        return k_absorb_wrap(ctx, data, len);
+    }
+
+    bool KeccakFinal(KECCAK_CTX *ctx) {
+        return k_squeeze_wrap(ctx);
+    }
+
+    bool KeccakSqueeze(KECCAK_CTX *ctx, uint8_t *output, size_t outlen) {
+        return k_squeeze_wrap(ctx, output, outlen);
+    }
+
+    /* One-shot Keccak (raw): absorb, finalize, squeeze */
+    bool Keccak(const uint8_t *data, size_t len,
+                uint8_t *digest, size_t outlen,
+                size_t rate, uint8_t suffix) {
+        return k_hash_wrap(data, len, digest, outlen, rate, suffix);
+    }
+
+#endif // ENABLE_RAW_KECCAK
+
+#endif // ENABLE_KECCAK_CORE
+
+/* =============================
+   SHA-3 convenience wrappers
+   ============================= */
+
+#if ENABLE_SHA3_224
+
+bool SHA3_224Init(SHA3_224_CTX *ctx) {
+    return k_init_wrap(ctx, SHA3_224_BLOCK_SIZE, SHA3_224_DOMAIN);
+}
+
+bool SHA3_224Absorb(SHA3_224_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHA3_224Final(SHA3_224_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHA3_224Squeeze(SHA3_224_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHA3_224(const uint8_t *data, size_t len, uint8_t digest[SHA3_224_DIGEST_SIZE]) {
+    return k_hash_wrap(data, len, digest, SHA3_224_DIGEST_SIZE, SHA3_224_BLOCK_SIZE, SHA3_224_DOMAIN);
+}
+
+#endif // ENABLE_SHA3_224
+
+
+#if ENABLE_SHA3_256
+
+bool SHA3_256Init(SHA3_256_CTX *ctx) {
+    return k_init_wrap(ctx, SHA3_256_BLOCK_SIZE, SHA3_256_DOMAIN);
+}
+
+bool SHA3_256Absorb(SHA3_256_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHA3_256Final(SHA3_256_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHA3_256Squeeze(SHA3_256_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHA3_256(const uint8_t *data, size_t len, uint8_t digest[SHA3_256_DIGEST_SIZE]) {
+    return k_hash_wrap(data, len, digest, SHA3_256_DIGEST_SIZE, SHA3_256_BLOCK_SIZE, SHA3_256_DOMAIN);
+}
+
+#endif // ENABLE_SHA3_256
+
+
+#if ENABLE_SHA3_384
+
+bool SHA3_384Init(SHA3_384_CTX *ctx) {
+    return k_init_wrap(ctx, SHA3_384_BLOCK_SIZE, SHA3_384_DOMAIN);
+}
+
+bool SHA3_384Absorb(SHA3_384_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHA3_384Final(SHA3_384_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHA3_384Squeeze(SHA3_384_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHA3_384(const uint8_t *data, size_t len, uint8_t digest[SHA3_384_DIGEST_SIZE]) {
+    return k_hash_wrap(data, len, digest, SHA3_384_DIGEST_SIZE, SHA3_384_BLOCK_SIZE, SHA3_384_DOMAIN);
+}
+
+#endif // ENABLE_SHA3_384
+
+
+#if ENABLE_SHA3_512
+
+bool SHA3_512Init(SHA3_512_CTX *ctx) {
+    return k_init_wrap(ctx, SHA3_512_BLOCK_SIZE, SHA3_512_DOMAIN);
+}
+
+bool SHA3_512Absorb(SHA3_512_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHA3_512Final(SHA3_512_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHA3_512Squeeze(SHA3_512_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHA3_512(const uint8_t *data, size_t len, uint8_t digest[SHA3_512_DIGEST_SIZE]) {
+    return k_hash_wrap(data, len, digest, SHA3_512_DIGEST_SIZE, SHA3_512_BLOCK_SIZE, SHA3_512_DOMAIN);
+}
+
+#endif // ENABLE_SHA3_512
+
+/* ======================================
+   SHAKE128
+   ====================================== */
+#if ENABLE_SHAKE128
+
+#define SHAKE128_DOMAIN 0x1F
+
+bool SHAKE128Init(SHAKE128_CTX *ctx) {
+    return k_init_wrap(ctx, SHAKE128_BLOCK_SIZE, SHAKE128_DOMAIN);
+}
+
+bool SHAKE128Absorb(SHAKE128_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHAKE128Final(SHAKE128_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHAKE128Squeeze(SHAKE128_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
+    return k_hash_wrap(data, len, digest, outlen, SHAKE128_BLOCK_SIZE, SHAKE128_DOMAIN);
+}
+
+#endif // ENABLE_SHAKE128
+
+
+/* ======================================
+   SHAKE256
+   ====================================== */
+#if ENABLE_SHAKE256
+
+#define SHAKE256_DOMAIN 0x1F
+
+bool SHAKE256Init(SHAKE256_CTX *ctx) {
+    return k_init_wrap(ctx, SHAKE256_BLOCK_SIZE, SHAKE256_DOMAIN);
+}
+
+bool SHAKE256Absorb(SHAKE256_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool SHAKE256Final(SHAKE256_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool SHAKE256Squeeze(SHAKE256_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool SHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
+    return k_hash_wrap(data, len, digest, outlen, SHAKE256_BLOCK_SIZE, SHAKE256_DOMAIN);
+}
+
+#endif // ENABLE_SHAKE256
+
+
+/* ======================================
+   Optional helpers for bit truncation/concat
+   ====================================== */
+#if ENABLE_SHAKE128 || ENABLE_SHAKE256
+
+static inline void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out) {
+    size_t full_bytes = s / 8;
+    size_t rem_bits  = s % 8;
+
+    if (full_bytes > Xlen) full_bytes = Xlen;
+    memcpy(out, X, full_bytes);
+
+    if (rem_bits && full_bytes < Xlen) {
+        uint8_t mask = 0xFF << (8 - rem_bits);
+        out[full_bytes] = X[full_bytes] & mask;
+    }
+}
+
+static inline void concat_bits(const uint8_t *X, size_t x_bits,
+                               const uint8_t *Y, size_t y_bits,
+                               uint8_t *out) {
+
+    size_t out_bits = x_bits + y_bits;
+    size_t out_bytes = (out_bits + 7) / 8;
+    memset(out, 0, out_bytes);
+
+    size_t x_full_bytes = x_bits / 8;
+    memcpy(out, X, x_full_bytes);
+
+    size_t x_rem_bits = x_bits % 8;
+    if (x_rem_bits && x_full_bytes < out_bytes) {
+        out[x_full_bytes] = X[x_full_bytes] & (0xFF << (8 - x_rem_bits));
+    }
+
+    for (size_t i = 0; i < y_bits; i++) {
+        size_t bit_index = x_bits + i;
+        size_t out_byte = bit_index / 8;
+        size_t out_bit  = 7 - (bit_index % 8);
+        uint8_t y_bit = (Y[i / 8] >> (7 - (i % 8))) & 1;
+        out[out_byte] |= y_bit << out_bit;
+    }
+}
+
+#endif // ENABLE_SHAKE128 || ENABLE_SHAKE256
+
+
+/* ======================================
+   RawSHAKE128
+   ====================================== */
+#if ENABLE_RAWSHAKE128
+
+#define RAWSHAKE128_DOMAIN 0x00
+
+bool RawSHAKE128Init(RawSHAKE128_CTX *ctx) {
+    return k_init_wrap(ctx, RAWSHAKE128_BLOCK_SIZE, RAWSHAKE128_DOMAIN);
+}
+
+bool RawSHAKE128Absorb(RawSHAKE128_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool RawSHAKE128Final(RawSHAKE128_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool RawSHAKE128Squeeze(RawSHAKE128_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool RawSHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
+    RawSHAKE128_CTX ctx;
+    RawSHAKE128Init(&ctx);
+    k_absorb_wrap(&ctx, data, len);
+    k_final_wrap(&ctx);
+    return k_squeeze_wrap(&ctx, digest, outlen);
+}
+
+#endif // ENABLE_RAWSHAKE128
+
+
+/* ======================================
+   RawSHAKE256
+   ====================================== */
+#if ENABLE_RAWSHAKE256
+
+#define RAWSHAKE256_DOMAIN 0x00
+
+bool RawSHAKE256Init(RawSHAKE256_CTX *ctx) {
+    return k_init_wrap(ctx, RAWSHAKE256_BLOCK_SIZE, RAWSHAKE256_DOMAIN);
+}
+
+bool RawSHAKE256Absorb(RawSHAKE256_CTX *ctx, const uint8_t *data, size_t len) {
+    return k_absorb_wrap(ctx, data, len);
+}
+
+bool RawSHAKE256Final(RawSHAKE256_CTX *ctx) {
+    return k_final_wrap(ctx);
+}
+
+bool RawSHAKE256Squeeze(RawSHAKE256_CTX *ctx, uint8_t *output, size_t outlen) {
+    return k_squeeze_wrap(ctx, output, outlen);
+}
+
+bool RawSHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
+    RawSHAKE256_CTX ctx;
+    RawSHAKE256Init(&ctx);
+    k_absorb_wrap(&ctx, data, len);
+    k_final_wrap(&ctx);
+    return k_squeeze_wrap(&ctx, digest, outlen);
+}
+
+#endif // ENABLE_RAWSHAKE256
 
 #endif
