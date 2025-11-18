@@ -194,6 +194,13 @@ I wrote Tiny SHA because I wanted a small, self-contained hashing library I can 
 
 ---
 
+## Sources
+
+- [RFC 6234 – US Secure Hash Algorithms (SHA and SHA‑based HMAC and HKDF), May 2011](https://datatracker.ietf.org/doc/html/rfc6234)
+- [FIPS PUB 202 – SHA‑3 Standard: Permutation-Based Hash and Extendable-Output Functions, August 2015](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
+
+---
+
 ## License
 
 This project is released under the **MIT License**. See `LICENSE` for full text.
