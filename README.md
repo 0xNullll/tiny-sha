@@ -171,18 +171,23 @@ if (cmp == 0) {
 
 ---
 
+---
+
 ## Notes
 
 - Fully self-contained — no external dependencies.  
 - All functions return `bool` to indicate success or failure.  
 - Designed for simplicity, speed, and easy integration.  
-- SHA-3 functions correspond to SHA-2 operations:  
+- SHA-3 functions correspond to SHA-2 operations:
   - `Init` (SHA-2) → `Init` (SHA-3)  
   - `Update` (SHA-2) → `Absorb` (SHA-3)  
   - `Final` (SHA-2) → `Final` / `Squeeze` (SHA-3)  
 - One-shot wrapper functions follow the same style across all algorithms, ensuring a consistent API.  
 - SHAKE and RawSHAKE functions support variable-length output for flexible bit-level operations.  
-- Raw Keccak API can be enabled via `ENABLE_RAW_KECCAK`.
+- Raw Keccak API can be enabled via `ENABLE_RAW_KECCAK`.  
+- Optional bit-level helpers (enabled with `ENABLE_SHAKE128` or `ENABLE_SHAKE256`):
+  - `Trunc_s(X, Xlen, s, out)` — truncates a byte array `X` to the first `s` bits, storing the result in `out`.
+  - `concat_bits(X, x_bits, Y, y_bits, out)` — concatenates `x_bits` from `X` and `y_bits` from `Y` into `out`.
 
 ---
 
