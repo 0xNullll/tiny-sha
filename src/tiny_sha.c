@@ -85,8 +85,7 @@ static bool SHA1ProcessBlock(SHA1_CTX *ctx, const uint8_t *block) {
 } 
 
 bool SHA1Update(SHA1_CTX *ctx,const uint8_t *data,size_t len) {
-    ctx->Nl += (uint32_t)(len*8);
-    if(ctx->Nl < (len*8)) ctx->Nh++;
+    ctx->len += len * 8;
 
     while(len > 0) {
         uint32_t to_copy = 64 - ctx->num;
@@ -107,7 +106,6 @@ bool SHA1Update(SHA1_CTX *ctx,const uint8_t *data,size_t len) {
 bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]) {
     if (!ctx || !digest) return false;
 
-    uint64_t total_bits = ((uint64_t)ctx->Nh << 32) | ctx->Nl;
     uint8_t block[SHA1_BLOCK_SIZE] = {0};
 
     // Copy leftover bytes and append 0x80
@@ -124,7 +122,7 @@ bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]) {
     }
 
     // Append length in bits using STORE64 (CPU-endian aware)
-    SHA_STORE64(block + 56, total_bits);
+    SHA_STORE64(block + 56, ctx->len);
 
     // Process final block
     if (!SHA1ProcessBlock(ctx, block)) return false;

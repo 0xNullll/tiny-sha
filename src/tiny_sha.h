@@ -3,8 +3,10 @@
  * Author: 0xNullll
  * Description: This header provides the public interface for the Tiny SHA library.
  *              It defines context structs, function prototypes, feature flags,
- *              and inline helpers for all supported SHA algorithms (SHA-1, SHA-224,
- *              SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256).
+ *              and inline helpers for all supported SHA algorithms:
+ *              SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256,
+ *              as well as SHA-3 variants (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
+ *              and optional raw SHAKE support if enabled.
  *              Implementation is in tiny_sha.c.
  * License: MIT
  */
@@ -334,7 +336,7 @@ static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
 
 typedef struct {
    uint32_t h0,h1,h2,h3,h4;
-   uint32_t Nl,Nh;
+   uint64_t len;
    uint8_t buf[SHA1_BLOCK_SIZE];
    size_t num;
 } SHA1_CTX;
