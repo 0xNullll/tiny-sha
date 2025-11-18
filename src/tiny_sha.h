@@ -819,9 +819,9 @@ static FORCE_INLINE int SHAKE256CompareOrder(const uint8_t *a, const uint8_t *b,
 
 #if ENABLE_SHAKE128 || ENABLE_SHAKE256
 
-static void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out);
+void Trunc_s(const uint8_t *X, size_t Xlen, size_t s, uint8_t *out);
 
-static void concat_bits(const uint8_t *X, size_t x_bits,
+void concat_bits(const uint8_t *X, size_t x_bits,
                         const uint8_t *Y, size_t y_bits,
                         uint8_t *out);
 
