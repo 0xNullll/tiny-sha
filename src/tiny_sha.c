@@ -1154,7 +1154,6 @@ bool RawSHAKE128Squeeze(RawSHAKE128_CTX *ctx, uint8_t *output, size_t outlen) {
 }
 
 bool RawSHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
-    RawSHAKE128_CTX ctx;
     return k_hash_wrap(data, len, digest, outlen, RAWSHAKE128_BLOCK_SIZE, RAWSHAKE128_DOMAIN);
 }
 
@@ -1183,7 +1182,6 @@ bool RawSHAKE256Squeeze(RawSHAKE256_CTX *ctx, uint8_t *output, size_t outlen) {
 }
 
 bool RawSHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
-    RawSHAKE256_CTX ctx;
     return k_hash_wrap(data, len, digest, outlen, RAWSHAKE256_BLOCK_SIZE, RAWSHAKE256_DOMAIN);
 
 }
