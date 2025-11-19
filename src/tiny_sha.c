@@ -1035,8 +1035,6 @@ bool SHA3_512(const uint8_t *data, size_t len, uint8_t digest[SHA3_512_DIGEST_SI
    ====================================== */
 #if ENABLE_SHAKE128
 
-#define SHAKE128_DOMAIN 0x1F
-
 bool SHAKE128Init(SHAKE128_CTX *ctx) {
     return k_init_wrap(ctx, SHAKE128_BLOCK_SIZE, SHAKE128_DOMAIN);
 }
@@ -1064,8 +1062,6 @@ bool SHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen) {
    SHAKE256
    ====================================== */
 #if ENABLE_SHAKE256
-
-#define SHAKE256_DOMAIN 0x1F
 
 bool SHAKE256Init(SHAKE256_CTX *ctx) {
     return k_init_wrap(ctx, SHAKE256_BLOCK_SIZE, SHAKE256_DOMAIN);
@@ -1141,8 +1137,6 @@ void concat_bits(const uint8_t *X, size_t x_bits,
    ====================================== */
 #if ENABLE_RAWSHAKE128
 
-#define RAWSHAKE128_DOMAIN 0x00
-
 bool RawSHAKE128Init(RawSHAKE128_CTX *ctx) {
     return k_init_wrap(ctx, RAWSHAKE128_BLOCK_SIZE, RAWSHAKE128_DOMAIN);
 }
@@ -1171,8 +1165,6 @@ bool RawSHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen
    RawSHAKE256
    ====================================== */
 #if ENABLE_RAWSHAKE256
-
-#define RAWSHAKE256_DOMAIN 0x00
 
 bool RawSHAKE256Init(RawSHAKE256_CTX *ctx) {
     return k_init_wrap(ctx, RAWSHAKE256_BLOCK_SIZE, RAWSHAKE256_DOMAIN);
