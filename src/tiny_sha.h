@@ -334,7 +334,7 @@ static FORCE_INLINE int TSHASH_FN(ConstTimeCompareOrder)(const uint8_t *a, const
     if (!a || !b || len == 0)
         return 0;
 
-    /* We record whether we've already seen a difference (seen),
+    /* this function record whether it had already seen a difference (seen),
      * and record whether that first difference indicated a<b (lt)
      * or a>b (gt).  At the end result = gt - lt -> {1,0,-1}. */
     uint32_t lt = 0;
