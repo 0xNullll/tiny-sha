@@ -1,4 +1,4 @@
-#include "tiny_sha.h"
+#include "../src/tiny_sha.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
