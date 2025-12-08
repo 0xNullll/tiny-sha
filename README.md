@@ -208,4 +208,4 @@ I wrote Tiny SHA because I wanted a small, self-contained hashing library I can 
 
 ## License
 
-This project is released under the **MIT License**. See `LICENSE` for full text.
+This project is released under the **MIT License**. See [LICENSE](LICENSE) for full text.
