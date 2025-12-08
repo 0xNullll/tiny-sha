@@ -21,7 +21,7 @@ else()
     target_compile_options(sha_test PRIVATE -Wall -Wextra -O2)
 endif()
 
-# Optional: output directory for the binary
+# output directory for the binary
 set_target_properties(sha_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
