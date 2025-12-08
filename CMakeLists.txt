@@ -5,13 +5,6 @@ project(sha_test C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Compiler flags
-if(MSVC)
-    add_compile_options(/W3 /O2)
-else()
-    add_compile_options(-Wall -Wextra -O2)
-endif()
-
 # Source files
 set(SOURCES
     src/tiny_sha.c
@@ -19,9 +12,16 @@ set(SOURCES
 )
 
 # Create executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(sha_test ${SOURCES})
+
+# Compiler flags
+if(MSVC)
+    target_compile_options(sha_test PRIVATE /W3 /O2)
+else()
+    target_compile_options(sha_test PRIVATE -Wall -Wextra -O2)
+endif()
 
 # Optional: output directory for the binary
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(sha_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
