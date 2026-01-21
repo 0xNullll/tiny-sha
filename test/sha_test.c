@@ -112,7 +112,7 @@ void compute_and_print_hashes(const uint8_t *data, size_t len) {
 
 #if ENABLE_SHAKE128
     size_t shake128_len = 32; // example digest length
-    uint8_t digest_shake128[shake128_len];
+    uint8_t digest_shake128[32];
     if (!SHAKE128((const uint8_t*)data, len, digest_shake128, shake128_len)) {
         printf("SHAKE128 computation failed!\n");
     }
@@ -122,7 +122,7 @@ void compute_and_print_hashes(const uint8_t *data, size_t len) {
 
 #if ENABLE_SHAKE256
     size_t shake256_len = 64; // example digest length
-    uint8_t digest_shake256[shake256_len];
+    uint8_t digest_shake256[64];
     if (!SHAKE256((const uint8_t*)data, len, digest_shake256, shake256_len)) {
         printf("SHAKE256 computation failed!\n");
     }
@@ -132,7 +132,7 @@ void compute_and_print_hashes(const uint8_t *data, size_t len) {
 
 #if ENABLE_RAWSHAKE128
     size_t rawshake128_len = 32; // example digest length
-    uint8_t digest_rawshake128[rawshake128_len];
+    uint8_t digest_rawshake128[32];
     if (!RawSHAKE128((const uint8_t*)data, len, digest_rawshake128, rawshake128_len)) {
         printf("RawSHAKE128 computation failed!\n");
     }
@@ -142,7 +142,7 @@ void compute_and_print_hashes(const uint8_t *data, size_t len) {
 
 #if ENABLE_RAWSHAKE256
     size_t rawshake256_len = 64; // example digest length
-    uint8_t digest_rawshake256[rawshake256_len];
+    uint8_t digest_rawshake256[64];
     if (!RawSHAKE256((const uint8_t*)data, len, digest_rawshake256, rawshake256_len)) {
         printf("RawSHAKE256 computation failed!\n");
     }
