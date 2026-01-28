@@ -23,6 +23,14 @@
 extern "C" {
 #endif
 
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define CPU_BIG_ENDIAN 1
+#elif defined(_BIG_ENDIAN) || defined(__BIG_ENDIAN__) || defined(__ARMEB__) || defined(__MIPSEB__)
+#define CPU_BIG_ENDIAN 1
+#else
+#define CPU_BIG_ENDIAN 0
+#endif
+
 #ifdef _MSC_VER
 #define FORCE_INLINE __forceinline
 #else
@@ -176,14 +184,14 @@ static FORCE_INLINE uint32_t rotl32(uint32_t x, uint32_t n) {
     return (x << n) | (x >> (32 - n));
 }
 
-static FORCE_INLINE uint64_t rotl64(uint64_t x, uint64_t n) {
-    n &= 63;
-    return ((x) << (n)) | ((x) >> (64 - (n)));
-}
-
 static FORCE_INLINE uint32_t rotr32(uint32_t x, uint32_t n) {
     n &= 31;
     return (x >> n) | (x << (32 - n));
+}
+
+static FORCE_INLINE uint64_t rotl64(uint64_t x, uint64_t n) {
+    n &= 63;
+    return ((x) << (n)) | ((x) >> (64 - (n)));
 }
 
 static FORCE_INLINE uint64_t rotr64(uint64_t x, uint64_t n) {
@@ -192,9 +200,10 @@ static FORCE_INLINE uint64_t rotr64(uint64_t x, uint64_t n) {
 }
 
 #define ROTL32(x,n) rotl32(x,n)
-#define ROTL64(x,n) rotl64(x,n)
 #define ROTR32(x,n) rotr32(x,n)
+#define ROTL64(x,n) rotl64(x,n)
 #define ROTR64(x,n) rotr64(x,n)
+
 
 
 /* ----------------------
@@ -202,11 +211,34 @@ static FORCE_INLINE uint64_t rotr64(uint64_t x, uint64_t n) {
    ---------------------- */
 
 /* ==============================================================
-   SHA-1 / SHA-2 Big-endian helpers (32/64-bit)
+   SHA-1 / SHA-2 endian helpers (32/64-bit)
    For use with SHA-1, SHA-224, SHA-256, SHA-384, SHA-512
    ============================================================== */
+#if CPU_BIG_ENDIAN
 
-// 32-bit (SHA-1 / SHA-256 / SHA-224)
+// Big-endian CPU: memory already matches the hash format
+static FORCE_INLINE uint32_t BE32(const uint8_t *p) { 
+    uint32_t x;
+    memcpy(x, p, sizeof(x));
+    return x;
+}
+
+static FORCE_INLINE void PUT_BE32(uint8_t *p, uint32_t x) { 
+    memcpy(x, p, sizeof(x));
+}
+
+static FORCE_INLINE uint64_t BE64(const uint8_t *p) { 
+    uint64_t x;
+    memcpy(x, p, sizeof(x));
+    return x;
+}
+
+static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) { 
+    memcpy(x, p, sizeof(x));
+}
+#else
+
+// Little-endian CPU: convert manually
 static FORCE_INLINE uint32_t BE32(const uint8_t *p) {
     return ((uint32_t)p[0] << 24) |
            ((uint32_t)p[1] << 16) |
@@ -214,7 +246,13 @@ static FORCE_INLINE uint32_t BE32(const uint8_t *p) {
            ((uint32_t)p[3]);
 }
 
-// 64-bit (SHA-512 / SHA-384)
+static FORCE_INLINE void PUT_BE32(uint8_t *p, uint32_t x) {
+    p[0] = (uint8_t)(x >> 24);
+    p[1] = (uint8_t)(x >> 16);
+    p[2] = (uint8_t)(x >> 8);
+    p[3] = (uint8_t)x;
+}
+
 static FORCE_INLINE uint64_t BE64(const uint8_t *p) {
     return ((uint64_t)p[0] << 56) |
            ((uint64_t)p[1] << 48) |
@@ -224,14 +262,6 @@ static FORCE_INLINE uint64_t BE64(const uint8_t *p) {
            ((uint64_t)p[5] << 16) |
            ((uint64_t)p[6] << 8)  |
            ((uint64_t)p[7]);
-}
-
-// Write back to memory (big-endian)
-static FORCE_INLINE void PUT_BE32(uint8_t *p, uint32_t x) {
-    p[0] = (uint8_t)(x >> 24);
-    p[1] = (uint8_t)(x >> 16);
-    p[2] = (uint8_t)(x >> 8);
-    p[3] = (uint8_t)x;
 }
 
 static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) {
@@ -244,6 +274,8 @@ static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) {
     p[6] = (uint8_t)(x >> 8);
     p[7] = (uint8_t)x;
 }
+
+#endif
 
 /* ----------------------
    SHA-1 / SHA-2 load/store macros (big-endian)
@@ -258,8 +290,29 @@ static FORCE_INLINE void PUT_BE64(uint8_t *p, uint64_t x) {
    Keccak / SHA-3 Big-endian helpers (32/64-bit)
    For use with Keccak, SHA3-224, SHA3-256, SHA3-384, SHA3-512
    ============================================================== */
-#ifdef CPU_BIG_ENDIAN
-/* Big-endian CPU: swap bytes manually for Keccak */
+#if CPU_BIG_ENDIAN
+/* big-endian CPU: memory matches Keccak → no operation needed */
+static FORCE_INLINE uint32_t KECCAK_BE32(const uint8_t *p) {
+    uint32_t x;
+    memcpy(x, p, sizeof(x));
+    return x;
+}
+
+static FORCE_INLINE void KECCAK_PUT_BE32(uint8_t *p, uint32_t x) {
+    memcpy(p, x, sizeof(x));
+}
+
+static FORCE_INLINE uint64_t KECCAK_BE64(const uint8_t *p) {
+    uint64_t x;
+    memcpy(x, p, sizeof(x));
+    return x;
+}
+
+static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
+    memcpy(p, x, sizeof(x));
+}
+#else
+/* small-endian CPU: swap bytes manually for Keccak */
 static FORCE_INLINE uint32_t KECCAK_BE32(const uint8_t *p) {
     return  (uint32_t)p[0]       |
            ((uint32_t)p[1] << 8) |
@@ -294,24 +347,6 @@ static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
     p[5] = (uint8_t)(x >> 40);
     p[6] = (uint8_t)(x >> 48);
     p[7] = (uint8_t)(x >> 56);
-}
-
-#else
-/* Little-endian CPU: memory matches Keccak → no operation needed */
-static FORCE_INLINE uint32_t KECCAK_BE32(const uint8_t *p) {
-    return *(const uint32_t*)p;
-}
-
-static FORCE_INLINE void KECCAK_PUT_BE32(uint8_t *p, uint32_t x) {
-    *(uint32_t*)p = x;
-}
-
-static FORCE_INLINE uint64_t KECCAK_BE64(const uint8_t *p) {
-    return *(const uint64_t*)p;
-}
-
-static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
-    *(uint64_t*)p = x;
 }
 #endif
 

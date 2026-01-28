@@ -157,6 +157,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     const char *input = argv[1];
+    printf("Value to hash: \"%s\"\n", input);
     compute_and_print_hashes((const uint8_t*)input, strlen(input));
     return 0;
 }
