@@ -9,7 +9,7 @@ A lightweight, portable C library implementing a wide range of SHA algorithms, f
 - **SHA-1/2 variants**: SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256  
 - **SHA-3 variants**: SHA3-224, SHA3-256, SHA3-384, SHA3-512  
 - **SHAKE / XOF variants**: SHAKE128, SHAKE256  
-- **Raw SHAKE / Raw Keccak**: RawSHAKE128, RawSHAKE256 (for bit-level manipulation, can be enabled via `ENABLE_RAW_KECCAK`)  
+- **Raw SHAKE / Raw Keccak**: RawSHAKE128, RawSHAKE256 (for raw keccak, can be enabled via `ENABLE_RAW_KECCAK`)  
 - Separate implementation file (`tiny_sha.c`) and header (`tiny_sha.h`)  
 - Incremental (streaming) API: `Init`, `Absorb/Update`, `Final`, `Squeeze` (all return `bool`)  
 - Wrapper functions for one-shot hashing  
@@ -183,7 +183,7 @@ if (cmp == 0) {
   - `Update` (SHA-2) → `Absorb` (SHA-3)  
   - `Final` (SHA-2) → `Final` / `Squeeze` (SHA-3)  
 - One-shot wrapper functions follow the same style across all algorithms, ensuring a consistent API.  
-- SHAKE and RawSHAKE functions support variable-length output for flexible bit-level operations.  
+- SHAKE and RawSHAKE functions support variable-length output for flexible byte-level operations.  
 - Raw Keccak API can be enabled via `ENABLE_RAW_KECCAK`.  
 - Optional bit-level helpers (enabled with `ENABLE_SHAKE128` or `ENABLE_SHAKE256`):
   - `Trunc_s(X, Xlen, s, out)` — truncates a byte array `X` to the first `s` bits, storing the result in `out`.
