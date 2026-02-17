@@ -13,7 +13,7 @@ A lightweight, portable C library implementing a wide range of SHA algorithms, f
 - Separate implementation file (`tiny_sha.c`) and header (`tiny_sha.h`)  
 - Incremental (streaming) API: `Init`, `Absorb/Update`, `Final`, `Squeeze` (all return `bool`)  
 - Wrapper functions for one-shot hashing  
-- Safe Constant-time hash equality comparison using ConstTimeCompare, returning 1 if equal or 0 if different, without leaking timing.
+- Safe Constant-time hash equality comparison using `ConstTimeCompare`, returning 1 if equal or 0 if different, without leaking timing.
 - Handles endianness automatically  
 - Lightweight — entire library under 30 KB
 
