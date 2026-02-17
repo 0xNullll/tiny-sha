@@ -376,9 +376,7 @@ static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
  * ------------------------------------------------------------------ */
 static int TSHASH_FN(ConstTimeCompare)(const uint8_t *a, const uint8_t *b, size_t len) {
     if (!a || !b) return 0;
-
-    if (len == 0)
-        return 0;
+    if (len == 0) return 1;
 
     uint8_t diff = 0;
     for (size_t i = 0; i < len; i++) {
