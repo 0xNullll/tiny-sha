@@ -357,52 +357,43 @@ static FORCE_INLINE void KECCAK_PUT_BE64(uint8_t *p, uint64_t x) {
 #define KECCAK_STORE64(p,x) KECCAK_PUT_BE64((uint8_t*)(p), x)
 
 /* ------------------------------------------------------------------
- * Constant Time lexicographic comparator
- * Returns: -1 if a < b, 0 if a == b, +1 if a > b
+ * Constant-Time Equality Comparator
+ * Compares two byte buffers in constant time to prevent timing attacks.
+ *
+ * Parameters:
+ *  - a: pointer to first buffer
+ *  - b: pointer to second buffer
+ *  - alg: HMAC algorithm (used to determine digest length)
+ *
+ * Returns:
+ *  - 1 if buffers are equal
+ *  - 0 if buffers differ or if a/b are NULL
  *
  * Notes:
- *  - Scans the whole buffer (no early return).
- *  - Uses only integer/bit ops; no data-dependent branches.
- *  - Works for any length up to size_t.
+ *  - Entire buffer is scanned regardless of differences (no early return)
+ *  - Uses bitwise operations only, safe against timing attacks
+ *  - Includes compiler-specific memory barriers to prevent optimization
  * ------------------------------------------------------------------ */
-static FORCE_INLINE int TSHASH_FN(ConstTimeCompareOrder)(const uint8_t *a, const uint8_t *b, size_t len) {
-    if (!a || !b || len == 0)
+static int TSHASH_FN(ConstTimeCompare)(const uint8_t *a, const uint8_t *b, size_t len) {
+    if (!a || !b) return 0;
+
+    if (len == 0)
         return 0;
 
-    /* this function record whether it had already seen a difference (seen),
-     * and record whether that first difference indicated a<b (lt)
-     * or a>b (gt).  At the end result = gt - lt -> {1,0,-1}. */
-    uint32_t lt = 0;
-    uint32_t gt = 0;
-    uint32_t seen = 0;
-
-    for (size_t i = 0; i < len; ++i) {
-        /* Work with zero-extended 16-bit values to compute borrow on subtraction:
-         * If ai < bi then (uint16_t)(ai - bi) will underflow and its top bit (bit 15)
-         * will be 1. */
-        uint16_t ai = (uint16_t)a[i];
-        uint16_t bi = (uint16_t)b[i];
-
-        uint16_t d1 = (uint16_t)(ai - bi); /* top bit 1 if ai < bi */
-        uint16_t d2 = (uint16_t)(bi - ai); /* top bit 1 if bi < ai */
-
-        uint32_t is_lt = (uint32_t)(d1 >> 15); /* 1 if ai < bi else 0 */
-        uint32_t is_gt = (uint32_t)(d2 >> 15); /* 1 if ai > bi else 0 */
-
-        uint32_t diff = is_lt | is_gt;         /* 1 iff bytes differ at this position */
-        uint32_t new_diff_mask = (~seen) & diff; /* 1 iff this is the first differing byte */
-
-        /* Only set lt/gt from the first differing byte; subsequent bytes ignored. */
-        lt |= is_lt & new_diff_mask;
-        gt |= is_gt & new_diff_mask;
-
-        /* mark we have seen a difference (once set it stays set) */
-        seen |= diff;
+    uint8_t diff = 0;
+    for (size_t i = 0; i < len; i++) {
+        diff |= a[i] ^ b[i];
     }
 
-    /* result: 1 if gt set, -1 if lt set, 0 otherwise.
-     * Compute without branching. */
-    return (int)gt - (int)lt;
+#if defined(__GNUC__) || defined(__clang__)
+    __asm__ volatile("" : "+r"(diff) : : "memory");
+#elif defined(_MSC_VER)
+    _ReadWriteBarrier();
+#else
+    (void)diff;
+#endif
+
+    return diff == 0;
 }
 
 /* ======================================
@@ -434,8 +425,8 @@ static FORCE_INLINE bool SHA1(const uint8_t *data, size_t len, uint8_t digest[SH
     return SHA1Init(&ctx) && SHA1Update(&ctx, data, len) && SHA1Final(&ctx, digest);
 }
 
-static FORCE_INLINE int SHA1CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA1_DIGEST_SIZE);
+static int SHA1CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA1_DIGEST_SIZE);
 }
 
 #endif
@@ -470,8 +461,8 @@ static FORCE_INLINE bool SHA256(const uint8_t *data, size_t len, uint8_t digest[
     return SHA256Init(&ctx) && SHA256Update(&ctx, data, len) && SHA256Final(&ctx, digest);
 }
 
-static FORCE_INLINE int SHA256CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA256_DIGEST_SIZE);
+static int SHA256CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA256_DIGEST_SIZE);
 }
 
 #endif
@@ -501,8 +492,8 @@ static FORCE_INLINE bool SHA224(const uint8_t *data, size_t len, uint8_t digest[
     return SHA224Init(&ctx) && SHA224Update(&ctx, data, len) && SHA224Final(&ctx, digest);   
 }
 
-static FORCE_INLINE int SHA224CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA224_DIGEST_SIZE);
+static int SHA224CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA224_DIGEST_SIZE);
 }
 
 #endif
@@ -536,8 +527,8 @@ static FORCE_INLINE bool SHA512(const uint8_t *data, size_t len, uint8_t digest[
     return SHA512Init(&ctx) && SHA512Update(&ctx, data, len) && SHA512Final(&ctx, digest);
 }
 
-static FORCE_INLINE int SHA512CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA512_DIGEST_SIZE);
+static int SHA512CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA512_DIGEST_SIZE);
 }
 
 #endif
@@ -566,8 +557,8 @@ static FORCE_INLINE bool SHA384(const uint8_t *data, size_t len, uint8_t digest[
     return SHA384Init(&ctx) && SHA384Update(&ctx, data, len) && SHA384Final(&ctx, digest);   
 }
 
-static FORCE_INLINE int SHA384CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA384_DIGEST_SIZE);
+static int SHA384CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA384_DIGEST_SIZE);
 }
 
 #endif
@@ -596,8 +587,8 @@ static FORCE_INLINE bool SHA512_224(const uint8_t *data, size_t len, uint8_t dig
     return SHA512_224Init(&ctx) && SHA512_224Update(&ctx, data, len) && SHA512_224Final(&ctx, digest);
 }
 
-static FORCE_INLINE int SHA512_224CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA512_224_DIGEST_SIZE);
+static int SHA512_224CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA512_224_DIGEST_SIZE);
 }
 
 #endif
@@ -626,8 +617,8 @@ static FORCE_INLINE bool SHA512_256(const uint8_t *data, size_t len, uint8_t dig
     return SHA512_256Init(&ctx) && SHA512_256Update(&ctx, data, len) && SHA512_256Final(&ctx, digest);
 }
 
-static FORCE_INLINE int SHA512_256CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA512_256_DIGEST_SIZE);
+static int SHA512_256CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA512_256_DIGEST_SIZE);
 }
 
 #endif
@@ -671,8 +662,8 @@ bool Keccak(const uint8_t *data, size_t len,
             uint8_t *digest, size_t outlen,
             size_t rate, uint8_t suffix);
 
-static FORCE_INLINE int KeccakCompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, len);
+static int KeccakCompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, len);
 }
 
 #endif
@@ -702,8 +693,8 @@ bool SHA3_224Final(SHA3_224_CTX *ctx);
 bool SHA3_224Squeeze(SHA3_224_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHA3_224(const uint8_t *data, size_t len, uint8_t digest[SHA3_224_DIGEST_SIZE]);
 
-static FORCE_INLINE int SHA3_224CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA3_224_DIGEST_SIZE);
+static int SHA3_224CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA3_224_DIGEST_SIZE);
 }
 #endif
 
@@ -730,8 +721,8 @@ bool SHA3_256Final(SHA3_256_CTX *ctx);
 bool SHA3_256Squeeze(SHA3_256_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHA3_256(const uint8_t *data, size_t len, uint8_t digest[SHA3_256_DIGEST_SIZE]);
 
-static FORCE_INLINE int SHA3_256CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA3_256_DIGEST_SIZE);
+static int SHA3_256CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA3_256_DIGEST_SIZE);
 }
 #endif
 
@@ -758,8 +749,8 @@ bool SHA3_384Final(SHA3_384_CTX *ctx);
 bool SHA3_384Squeeze(SHA3_384_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHA3_384(const uint8_t *data, size_t len, uint8_t digest[SHA3_384_DIGEST_SIZE]);
 
-static FORCE_INLINE int SHA3_384CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA3_384_DIGEST_SIZE);
+static int SHA3_384CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA3_384_DIGEST_SIZE);
 }
 #endif
 
@@ -786,8 +777,8 @@ bool SHA3_512Final(SHA3_512_CTX *ctx);
 bool SHA3_512Squeeze(SHA3_512_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHA3_512(const uint8_t *data, size_t len, uint8_t digest[SHA3_512_DIGEST_SIZE]);
 
-static FORCE_INLINE int SHA3_512CompareOrder(const uint8_t *a, const uint8_t *b) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, SHA3_512_DIGEST_SIZE);
+static int SHA3_512CompareOrder(const uint8_t *a, const uint8_t *b) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, SHA3_512_DIGEST_SIZE);
 }
 #endif
 
@@ -813,8 +804,8 @@ bool SHAKE128Final(SHAKE128_CTX *ctx);
 bool SHAKE128Squeeze(SHAKE128_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen);
 
-static FORCE_INLINE int SHAKE128CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, len);
+static int SHAKE128CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, len);
 
 }
 #endif
@@ -841,8 +832,8 @@ bool SHAKE256Final(SHAKE256_CTX *ctx);
 bool SHAKE256Squeeze(SHAKE256_CTX *ctx, uint8_t *output, size_t outlen);
 bool SHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen);
 
-static FORCE_INLINE int SHAKE256CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, len);
+static int SHAKE256CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, len);
 }
 #endif
 
@@ -878,8 +869,8 @@ bool RawSHAKE128Final(RawSHAKE128_CTX *ctx);
 bool RawSHAKE128Squeeze(RawSHAKE128_CTX *ctx, uint8_t *output, size_t outlen);
 bool RawSHAKE128(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen);
 
-static FORCE_INLINE int RawSHAKE128CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, len);
+static int RawSHAKE128CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, len);
 }
 #endif
 
@@ -905,8 +896,8 @@ bool RawSHAKE256Final(RawSHAKE256_CTX *ctx);
 bool RawSHAKE256Squeeze(RawSHAKE256_CTX *ctx, uint8_t *output, size_t outlen);
 bool RawSHAKE256(const uint8_t *data, size_t len, uint8_t *digest, size_t outlen);
 
-static FORCE_INLINE int RawSHAKE256CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
-    return TSHASH_FN(ConstTimeCompareOrder)(a, b, len);
+static int RawSHAKE256CompareOrder(const uint8_t *a, const uint8_t *b, size_t len) {
+    return TSHASH_FN(ConstTimeCompare)(a, b, len);
 }
 #endif
 
