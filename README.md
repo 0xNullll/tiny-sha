@@ -15,7 +15,7 @@ A lightweight, portable C library implementing a wide range of SHA algorithms, f
 - Wrapper functions for one-shot hashing  
 - Safe Constant-time lexicographic hash comparison using CompareOrder, returning -1/0/1 without leaking timing
 - Handles endianness automatically  
-- Lightweight — entire library under 50 KB
+- Lightweight — entire library under 30 KB
 
 ---
 
@@ -23,21 +23,32 @@ A lightweight, portable C library implementing a wide range of SHA algorithms, f
 
 The library allows enabling or disabling specific hash algorithms. By default, all are enabled.
 
-Flags are defined inside the header:
+You can define flags via CMake for proper build integration:
 
-```c
-#define ENABLE_SHA1      1    // enable SHA-1
-#define ENABLE_SHA256    1    // enable SHA-256
-#define ENABLE_SHA3_256  0    // disable SHA3-256
-#include "tiny_sha.h"
-```
+```cmake
+# Tiny-SHA feature flags
+target_compile_definitions(test_sha PRIVATE
+    ENABLE_SHA1=1
+    ENABLE_SHA224=1
+    ENABLE_SHA256=1
+    ENABLE_SHA384=1
+    ENABLE_SHA512=1
+    ENABLE_SHA512_224=1
+    ENABLE_SHA512_256=1
 
-> ⚠️ Note: Defining these macros before including the header may not always work. Recommended ways:
+    ENABLE_SHA3_224=1
+    ENABLE_SHA3_256=1
+    ENABLE_SHA3_384=1
+    ENABLE_SHA3_512=1
 
-1. Update the flags directly inside the header.  
-2. Use compiler `-D` flags, for example:
-```bash
-gcc -DENABLE_SHA1=1 -DENABLE_SHA256=0 tiny_sha.c test_sha.c -o test_sha
+    ENABLE_SHAKE128=1
+    ENABLE_SHAKE256=1
+    ENABLE_RAWSHAKE128=1
+    ENABLE_RAWSHAKE256=1
+
+    ENABLE_RAW_KECCAK=0         # off by default
+    TSHASH_PREFIX=MyLib_        # optional function prefix
+)
 ```
 
 The header handles internal dependencies automatically:
@@ -58,20 +69,49 @@ To avoid name collisions, you can add a prefix to all functions:
 #include "tiny_sha.h"
 ```
 
-Now all functions will have the prefix:
+All functions will now have the prefix:
 
 ```c
 MyLib_SHA256(...);         // wrapper function
 MyLib_sha256_init(...);    // incremental API
 ```
 
-You can also define it via compiler flags:
+> ⚠️ Note: `TSHASH_PREFIX` must be defined **before including the header**. Otherwise, functions will have no prefix (default behavior).
+
+---
+
+## Building with CMake
+
+1. Open a terminal and navigate to your project folder:
 
 ```bash
-gcc -DTSHASH_PREFIX=MyLib_ -DTINY_SHA_IMPLEMENTATION tiny_sha.c test_sha.c -o test_sha
+$ cd /path/to/repo/tiny-sha
 ```
 
-> ⚠️ Note: `TSHASH_PREFIX` must be defined **before including the header**. If not defined, functions will have no prefix (default behavior).
+2. Create and enter the `build` directory:
+
+```bash
+$ mkdir build
+$ cd build
+```
+
+3. Configure the project:
+
+```bash
+$ cmake ..
+```
+
+4. Build the project (Release mode recommended):
+
+```bash
+$ cmake --build . --config Release
+```
+
+- The final binary will be located in:
+
+```
+$ build/bin/Release/test_sha.exe
+```
 
 ---
 
@@ -168,8 +208,6 @@ if (cmp == 0) {
 | SHAKE256       | variable    |
 | RawSHAKE128    | variable    |
 | RawSHAKE256    | variable    |
-
----
 
 ---
 
