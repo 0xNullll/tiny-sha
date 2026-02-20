@@ -89,18 +89,18 @@ static bool SHA1ProcessBlock(SHA1_CTX *ctx, const uint8_t *block) {
 bool SHA1Update(SHA1_CTX *ctx, const uint8_t *data, size_t len) {
     if (!ctx || !data) return false;
 
-    ctx->len += (uint64_t)len * 8;  // total length in bits
+    ctx->len += (uint64_t)len;  // total length in bytes
 
     while (len > 0) {
-        size_t to_copy = 64 - ctx->num;   // remaining space in buffer
+        size_t to_copy = SHA1_BLOCK_SIZE - ctx->num;
         if (to_copy > len) to_copy = len;
 
         memcpy(ctx->buf + ctx->num, data, to_copy);
-        ctx->num += (uint32_t)to_copy;    // ctx->num is 32-bit
+        ctx->num += (uint32_t)to_copy;
         data += to_copy;
         len -= to_copy;
 
-        if (ctx->num == 64) {
+        if (ctx->num == SHA1_BLOCK_SIZE) {
             if (!SHA1ProcessBlock(ctx, ctx->buf)) return false;
             ctx->num = 0;
         }
@@ -112,28 +112,24 @@ bool SHA1Update(SHA1_CTX *ctx, const uint8_t *data, size_t len) {
 bool SHA1Final(SHA1_CTX *ctx, uint8_t digest[SHA1_DIGEST_SIZE]) {
     if (!ctx || !digest) return false;
 
-    uint8_t block[SHA1_BLOCK_SIZE] = {0};
+    uint8_t pad[SHA1_BLOCK_SIZE] = {0};
+    pad[0] = 0x80;  // append the 1-bit
 
-    // Copy leftover bytes and append 0x80
-    memcpy(block, ctx->buf, ctx->num);
-    block[ctx->num++] = 0x80;
+    // Message length in bits
+    uint64_t bit_len = ctx->len * 8;
+    uint8_t len_bytes[8];
+    SHA_STORE64(len_bytes, bit_len); // 64-bit length in big-endian
 
-    // Pad zeros
-    if (ctx->num > 56) {
-        memset(block + ctx->num, 0, SHA1_BLOCK_SIZE - ctx->num);
-        if (!SHA1ProcessBlock(ctx, block)) return false;
-        memset(block, 0, 56); // new zeroed block
-    } else {
-        memset(block + ctx->num, 0, 56 - ctx->num);
-    }
+    // Compute padding length: enough to leave 8 bytes at the end for length
+    size_t pad_len = (ctx->num < 56) ? (56 - ctx->num) : (64 + 56 - ctx->num);
 
-    // Append length in bits using STORE64 (CPU-endian aware)
-    SHA_STORE64(block + 56, ctx->len);
+    // Feed padding
+    if (!SHA1Update(ctx, pad, pad_len)) return false;
 
-    // Process final block
-    if (!SHA1ProcessBlock(ctx, block)) return false;
+    // Feed length
+    if (!SHA1Update(ctx, len_bytes, 8)) return false;
 
-    // Output digest using STORE32
+    // Output digest in big-endian
     SHA_STORE32(digest + 0,  ctx->h0);
     SHA_STORE32(digest + 4,  ctx->h1);
     SHA_STORE32(digest + 8,  ctx->h2);
@@ -254,32 +250,28 @@ bool SHA256Update(SHA256_CTX *ctx, const uint8_t *data, size_t len) {
 bool SHA256Final(SHA256_CTX *ctx, uint8_t digest[SHA256_DIGEST_SIZE]) {
     if (!ctx || !digest) return false;
 
-    uint8_t block[SHA256_BLOCK_SIZE] = {0};
+    uint8_t pad[SHA256_BLOCK_SIZE] = {0};
+    pad[0] = 0x80; // append the 1-bit
 
-    // Copy remaining bytes and append 0x80
-    memcpy(block, ctx->buf, ctx->buf_len);
-    block[ctx->buf_len++] = 0x80;
-
-    // Compute padding length (56 bytes reserved for length)
-    size_t pad_len = (ctx->buf_len <= 56) ? (56 - ctx->buf_len) : (64 + 56 - ctx->buf_len);
-    memset(block + ctx->buf_len, 0, pad_len);
-
-    // Append message length in bits using STORE64
+    uint8_t len_bytes[8];
     uint64_t bit_len = ctx->len * 8;
-    SHA_STORE64(block + 56, bit_len);
+    SHA_STORE64(len_bytes, bit_len); // 64-bit length in big-endian
 
-    // Process final block
-    if (!SHA256ProcessBlock(ctx, block)) return false;
+    // Compute padding length: enough to leave 8 bytes at the end for length
+    size_t pad_len = (ctx->buf_len < 56) ? (56 - ctx->buf_len) : (64 + 56 - ctx->buf_len);
 
-    // If padding + length overflowed one block
-    if (ctx->buf_len + pad_len + 8 > 64) {
-        memset(block, 0, SHA256_BLOCK_SIZE);
-        if (!SHA256ProcessBlock(ctx, block)) return false;
-    }
+    // Feed padding
+    if (!SHA256Update(ctx, pad, pad_len)) return false;
 
-    // Store digest using STORE32 (CPU-endian optimized)
+    // Feed length
+    if (!SHA256Update(ctx, len_bytes, 8)) return false;
+
+    // Produce digest
     for (size_t i = 0; i < 8; i++)
         SHA_STORE32(digest + i*4, ctx->state[i]);
+
+    memset(pad, 0, sizeof(pad));
+    memset(len_bytes, 0, sizeof(len_bytes));
 
     return true;
 }
