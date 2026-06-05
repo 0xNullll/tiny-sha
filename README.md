@@ -76,7 +76,7 @@ MyLib_SHA256(...);         // wrapper function
 MyLib_sha256_init(...);    // incremental API
 ```
 
-> ⚠️ Note: `TSHASH_PREFIX` must be defined **before including the header**. Otherwise, functions will have no prefix (default behavior).
+> Note: `TSHASH_PREFIX` must be defined **before including the header**. Otherwise, functions will have no prefix (default behavior).
 
 ---
 
